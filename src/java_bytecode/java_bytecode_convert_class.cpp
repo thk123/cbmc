@@ -174,7 +174,7 @@ void java_bytecode_convert_classt::convert(const classt &c)
     const irep_idt method_identifier=
       id2string(qualified_classname)+
       "."+id2string(method.name)+
-      ":"+method.signature;
+      ":"+method.descriptor;
     // Always run the lazy pre-stage, as it symbol-table
     // registers the function.
     debug() << "Adding symbol:  method '" << method_identifier << "'" << eom;
@@ -195,7 +195,7 @@ void java_bytecode_convert_classt::convert(
   symbolt &class_symbol,
   const fieldt &f)
 {
-  typet field_type=java_type_from_string(f.signature);
+  typet field_type=java_type_from_string(f.descriptor);
 
   // is this a static field?
   if(f.is_static)

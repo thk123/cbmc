@@ -151,7 +151,7 @@ void java_bytecode_parse_treet::methodt::output(std::ostream &out) const
     out << "synchronized ";
 
   out << name;
-  out << " : " << signature;
+  out << " : " << descriptor;
 
   out << '\n';
 
@@ -188,7 +188,7 @@ void java_bytecode_parse_treet::methodt::output(std::ostream &out) const
   for(const auto &v : local_variable_table)
   {
     out << "    " << v.index << ": " << v.name << ' '
-        << v.signature << '\n';
+        << v.descriptor << '\n';
   }
 
   out << '\n';
@@ -212,7 +212,7 @@ void java_bytecode_parse_treet::fieldt::output(std::ostream &out) const
     out << "static ";
 
   out << name;
-  out << " : " << signature << ';';
+  out << " : " << descriptor << ';';
 
   out << '\n';
 }

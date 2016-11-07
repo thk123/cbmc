@@ -13,6 +13,18 @@ Author: Daniel Kroening, kroening@kroening.com
 #include <util/type.h>
 #include <util/std_types.h>
 
+class java_generic_typet:public reference_typet
+{
+public:
+  java_generic_typet(const typet &_bound) :
+    reference_typet(_bound, 32)
+  {
+    set(ID_java_generic_type, true);
+  }
+
+  java_generic_typet() {};
+};
+
 class java_class_typet:public class_typet
 {
  public:

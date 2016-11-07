@@ -382,7 +382,7 @@ static void populate_predecessor_map(
         else
         {
           if(pred_var->var.name!=it->var.name ||
-             pred_var->var.signature!=it->var.signature)
+             pred_var->var.descriptor!=it->var.descriptor)
           {
             // These sorts of infeasible edges can occur because
             // jsr handling is presently vague (any subroutine is
@@ -712,7 +712,7 @@ void java_bytecode_convert_methodt::setup_local_variables(
 
 #ifdef DEBUG
   debug() << "jcm: setup-local-vars: m.is_static "
-          << m.is_static << " m.signature " << m.signature << eom;
+          << m.is_static << " m.descriptor " << m.descriptor << eom;
   debug() << "jcm: setup-local-vars: lv arg slots "
           << slots_for_parameters << eom;
   debug() << "jcm: setup-local-vars: lvt size "
@@ -763,10 +763,15 @@ void java_bytecode_convert_methodt::setup_local_variables(
 
 #ifdef DEBUG
     debug() << "jcm: setup-local-vars: merged variable: idx " << v.var.index
-            << " name " << v.var.name << " v.var.signature '"
-            << v.var.signature << "' holes " << v.holes.size() << eom;
+            << " name " << v.var.name << " v.var.descriptor '"
+            << v.var.descriptor << "' holes " << v.holes.size() << eom;
 #endif
-    typet t=java_type_from_string(v.var.signature);
+    typet t=java_type_from_string(v.var.descriptor);
+    if(v.var.hasSignature)
+    {
+      typet g=java_type_from_string(v.var.signature);
+    }
+
     std::ostringstream id_oss;
     id_oss << method_id << "::" << v.var.start_pc << "::" << v.var.name;
     irep_idt identifier(id_oss.str());

@@ -8,7 +8,6 @@ Author: Daniel Kroening, kroening@kroening.com
 
 #include "java_types.h"
 
-#include <cassert>
 #include <cctype>
 
 #include <util/prefix.h>
@@ -16,6 +15,11 @@ Author: Daniel Kroening, kroening@kroening.com
 #include <util/c_types.h>
 #include <util/std_expr.h>
 #include <util/ieee_float.h>
+#include <util/invariant.h>
+#define DEBUG
+#ifdef DEBUG
+#include <iostream>
+#endif
 
 typet java_int_type()
 {
@@ -114,7 +118,7 @@ bool is_java_array_tag(const irep_idt& tag)
 
 bool is_reference_type(const char t)
 {
-  return 'a' == t;
+  return 'a'==t;
 }
 
 typet java_type_from_char(char t)
@@ -158,6 +162,43 @@ exprt java_bytecode_promotion(const exprt &expr)
     return typecast_exprt(expr, new_type);
 }
 
+/// find corresponding closing '>' which may be hierarchic
+size_t java_generics_find_closing(const std::string &src, size_t open_pos)
+{
+  size_t c_pos=open_pos+1;
+  const size_t end_pos=src.size()-1;
+  size_t depth=0;
+
+  while(c_pos<=end_pos)
+  {
+    if(src[c_pos]=='<')
+      depth++;
+    else if(src[c_pos]=='>')
+    {
+      if(depth==0)
+        return c_pos;
+      depth--;
+    }
+    c_pos++;
+    // limit depth to sensible values
+    assert(depth<=(src.size()-open_pos));
+  }
+  // did not find corresponding closing '>'
+  return std::string::npos;
+}
+
+/*******************************************************************\
+
+Function: java_type_from_string
+
+  Inputs:
+
+ Outputs:
+
+ Purpose:
+
+\*******************************************************************/
+
 typet java_type_from_string(const std::string &src)
 {
   if(src.empty())
@@ -186,7 +227,15 @@ typet java_type_from_string(const std::string &src)
         {
           if(src[i]=='L')
           {
-            i=src.find(';', i); // ends on ;
+            size_t g_open=src.find('<', i);
+            size_t end_pos=src.find(';', i);
+            // generic signature
+            if(g_open!=std::string::npos && g_open<end_pos)
+            {
+              i=java_generics_find_closing(src, g_open)+1; // point to '>;'
+            }
+            else
+              i=src.find(';', i); // ends on ;
             break;
           }
           else if(src[i]=='[')
@@ -241,6 +290,52 @@ typet java_type_from_string(const std::string &src)
         return nil_typet();
       std::string class_name=src.substr(1, src.size()-2);
 
+      std::size_t f_pos=src.find('<', 1);
+      // get generic type information
+      if(f_pos!=std::string::npos)
+      {
+        std::size_t e_pos=java_generics_find_closing(src, f_pos);
+        if(e_pos==std::string::npos)
+          return nil_typet();
+
+        // construct container type
+        std::string generic_container_class=src.substr(1, f_pos-1);
+
+        for(unsigned i=0; i<generic_container_class.size(); i++)
+          if(generic_container_class[i]=='/')
+            generic_container_class[i]='.';
+
+        java_generic_typet result;
+        result.subtype()=symbol_typet("java::"+generic_container_class);
+        result.subtype().set(ID_C_base_name, generic_container_class);
+
+#ifdef DEBUG
+        std::cout << "INFO: found generic type "
+                  << src.substr(f_pos+1, e_pos-f_pos-1)
+                  << " in " << src
+                  << " with container " << generic_container_class
+                  << std::endl;
+#endif
+//         // currently return Object on non-instantiated generic type
+//         if(src[f_pos+1]=='T')
+//         {
+// #ifdef DEBUG
+//           std::size_t t_end_pos=src.find(';', f_pos+2);
+//           INVARIANT(
+//             t_end_pos!=std::string::npos,
+//             "non-terminated type parameter");
+//           std::cout << "INFO: found non-instantiated type parameter `"
+//                     << src.substr(f_pos+2, t_end_pos-f_pos-2)
+//                     << "` generalize to java/lang/Object"
+//                     << std::endl;
+// #endif
+//           return java_type_from_string("Ljava/lang/Object;");
+//         }
+//         else
+//           result.subtype()=
+//             java_type_from_string(std::string(src, f_pos+1, e_pos));
+        return result;
+      }
       for(unsigned i=0; i<class_name.size(); i++)
         if(class_name[i]=='/')
           class_name[i]='.';

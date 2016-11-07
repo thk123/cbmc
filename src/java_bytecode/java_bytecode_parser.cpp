@@ -333,19 +333,31 @@ void java_bytecode_parsert::get_class_refs()
     }
   }
 
-  for(const auto &m : parse_tree.parsed_class.fields)
+  for(const auto &f : parse_tree.parsed_class.fields)
   {
-    typet t=java_type_from_string(m.signature);
+    typet t=java_type_from_string(f.descriptor);
+    if(f.hasSignature)
+    {
+      typet g=java_type_from_string(f.signature);
+    }
     get_class_refs_rec(t);
   }
 
   for(const auto &m : parse_tree.parsed_class.methods)
   {
-    typet t=java_type_from_string(m.signature);
+    typet t=java_type_from_string(m.descriptor);
+    if(m.hasSignature)
+    {
+      typet g=java_type_from_string(m.signature);
+    }
     get_class_refs_rec(t);
     for(const auto &var : m.local_variable_table)
     {
-      typet var_type=java_type_from_string(var.signature);
+      typet var_type=java_type_from_string(var.descriptor);
+      if(var.hasSignature)
+      {
+        typet g=java_type_from_string(var.signature);
+      }
       get_class_refs_rec(var_type);
     }
   }
@@ -628,7 +640,8 @@ void java_bytecode_parsert::rfields(classt &parsed_class)
     field.is_static=(access_flags&ACC_STATIC)!=0;
     field.is_final=(access_flags&ACC_FINAL)!=0;
     field.is_enum=(access_flags&ACC_ENUM)!=0;
-    field.signature=id2string(pool_entry(descriptor_index).s);
+
+    field.descriptor=id2string(pool_entry(descriptor_index).s);
     field.is_public=(access_flags&ACC_PUBLIC)!=0;
     field.is_protected=(access_flags&ACC_PROTECTED)!=0;
     field.is_private=(access_flags&ACC_PRIVATE)!=0;
@@ -936,13 +949,19 @@ void java_bytecode_parsert::rmethod_attribute(methodt &method)
       it->source_location
         .set_function(
           "java::"+id2string(parse_tree.parsed_class.name)+"."+
-          id2string(method.name)+":"+method.signature);
+          id2string(method.name)+":"+method.descriptor);
     }
 
     // line number of method
     if(!method.instructions.empty())
       method.source_location.set_line(
         method.instructions.begin()->source_location.get_line());
+  }
+  else if(attribute_name=="Signature")
+  {
+    u2 signature_index=read_u2();
+    //method.hasSignature=true;
+    method.signature=id2string(pool_entry(signature_index).s);
   }
   else if(attribute_name=="RuntimeInvisibleAnnotations" ||
           attribute_name=="RuntimeVisibleAnnotations")
@@ -960,7 +979,13 @@ void java_bytecode_parsert::rfield_attribute(fieldt &field)
 
   irep_idt attribute_name=pool_entry(attribute_name_index).s;
 
-  if(attribute_name=="RuntimeInvisibleAnnotations" ||
+  if(attribute_name=="Signature")
+  {
+    u2 signature_index=read_u2();
+    //field.hasSignature=true;
+    field.signature=id2string(pool_entry(signature_index).s);
+  }
+  else if(attribute_name=="RuntimeInvisibleAnnotations" ||
      attribute_name=="RuntimeVisibleAnnotations")
   {
     rRuntimeAnnotation_attribute(field.annotations);
@@ -1022,8 +1047,31 @@ void java_bytecode_parsert::rcode_attribute(methodt &method)
 
       method.local_variable_table[i].index=index;
       method.local_variable_table[i].name=pool_entry(name_index).s;
-      method.local_variable_table[i].signature=
+      method.local_variable_table[i].descriptor=
         id2string(pool_entry(descriptor_index).s);
+      method.local_variable_table[i].start_pc=start_pc;
+      method.local_variable_table[i].length=length;
+    }
+  }
+  else if(attribute_name=="LocalVariableTypeTable")
+  {
+    u2 local_variable_table_length=read_u2();
+
+    method.local_variable_table.resize(local_variable_table_length);
+
+    for(std::size_t i=0; i<local_variable_table_length; i++)
+    {
+      u2 start_pc=read_u2();
+      u2 length=read_u2();
+      u2 name_index=read_u2();
+      u2 signature_index=read_u2();
+      u2 index=read_u2();
+
+      method.local_variable_table[i].index=index;
+      method.local_variable_table[i].name=pool_entry(name_index).s;
+      method.local_variable_table[i].signature=
+        id2string(pool_entry(signature_index).s);
+      //method.local_variable_table[i].hasSignature=true;
       method.local_variable_table[i].start_pc=start_pc;
       method.local_variable_table[i].length=length;
     }
@@ -1307,6 +1355,12 @@ void java_bytecode_parsert::rclass_attribute(classt &parsed_class)
       }
     }
   }
+  else if(attribute_name=="Signature")
+  {
+    u2 signature_index=read_u2();
+    //parsed_class.hasSignature=true;
+    parsed_class.signature=id2string(pool_entry(signature_index).s);
+  }
   else if(attribute_name=="RuntimeInvisibleAnnotations" ||
           attribute_name=="RuntimeVisibleAnnotations")
   {
@@ -1356,7 +1410,7 @@ void java_bytecode_parsert::rmethod(classt &parsed_class)
   method.is_native=(access_flags&ACC_NATIVE)!=0;
   method.name=pool_entry(name_index).s;
   method.base_name=pool_entry(name_index).s;
-  method.signature=id2string(pool_entry(descriptor_index).s);
+  method.descriptor=id2string(pool_entry(descriptor_index).s);
 
   size_t flags=(method.is_public?1:0)+
     (method.is_protected?1:0)+
