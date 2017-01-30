@@ -379,7 +379,8 @@ bool goto_analyzer_parse_optionst::process_goto_program(
 
     // remove function pointers
     status() << "Removing function pointers and virtual functions" << eom;
-    remove_function_pointers(goto_model, cmdline.isset("pointer-check"));
+    remove_function_pointers(
+      *message_handler, goto_model, cmdline.isset("pointer-check"));
     remove_virtual_functions(goto_model);
 
     // do partial inlining

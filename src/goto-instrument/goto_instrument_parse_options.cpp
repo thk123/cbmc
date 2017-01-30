@@ -777,6 +777,7 @@ void goto_instrument_parse_optionst::do_function_pointer_removal()
 
   status() << "Function Pointer Removal" << eom;
   remove_function_pointers(
+    *message_handler,
     symbol_table,
     goto_functions,
     cmdline.isset("pointer-check"));
@@ -1082,6 +1083,7 @@ void goto_instrument_parse_optionst::instrument_goto_program()
   {
     status() << "Function Pointer Removal" << eom;
     remove_function_pointers(
+      *message_handler,
       symbol_table,
       goto_functions,
       cmdline.isset("pointer-check"));
