@@ -348,15 +348,17 @@ bool remove_function_pointerst::try_get_call_from_index(
           for(const exprt &op : array_expr.operands())
           {
             exprt precise_match;
+            bool found_functions=false;
             if(try_get_precise_call(op, precise_match))
             {
               out_functions.push_back(precise_match);
+              found_functions=true;
             }
-            bool found_functions=false;
             found_functions=
               found_functions || try_get_from_address_of(op, out_functions);
             found_functions=
               found_functions || try_get_call_from_symbol(op, out_functions);
+            assert(found_functions);
           }
           return out_functions.size() > 0;
         }
