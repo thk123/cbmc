@@ -358,7 +358,21 @@ bool remove_function_pointerst::try_get_call_from_index(
               found_functions || try_get_from_address_of(op, out_functions);
             found_functions=
               found_functions || try_get_call_from_symbol(op, out_functions);
+
+#if 0
             assert(found_functions);
+#else
+            // This can and should be an assert (as I can't think of any legal
+            // C code that an array can be const but the values changed). None
+            // the less, erring on the side of caution for this build we just
+            // say we know nothing about this array.
+            if(!found_functions)
+            {
+              debug() << "Could not convert an element of the constant array:\n"
+                      << op.pretty() << eom;
+              return false;
+            }
+#endif
           }
           return out_functions.size() > 0;
         }
