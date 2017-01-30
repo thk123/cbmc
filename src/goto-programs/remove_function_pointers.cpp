@@ -185,6 +185,8 @@ bool remove_function_pointerst::try_get_precise_call(
 {
   if(expr.id()==ID_symbol && expr.type().id()==ID_code)
   {
+    debug() << "Managed to get precise function call: "
+            << expr.get(ID_identifier) << eom;
     out_function=to_symbol_expr(expr);
     return true;
   }
@@ -225,7 +227,17 @@ bool remove_function_pointerst::try_get_from_address_of(
     }
     else
     {
-      return try_get_call_from_symbol(address_of_expr.object(), out_functions);
+      bool got_match=
+        try_get_call_from_symbol(address_of_expr.object(), out_functions);
+
+      if(!got_match)
+      {
+        debug() << "Could not find function pointer details after address_of "
+                << "dereferenced object:\n"
+                << address_of_expr.object().pretty() << eom;
+      }
+
+      return got_match;
     }
   }
   else
@@ -274,6 +286,14 @@ bool remove_function_pointerst::try_get_call_from_symbol(
       found_functions || try_get_call_from_index(looked_up_val, out_functions);
     found_functions=
       found_functions || try_get_call_from_symbol(looked_up_val, out_functions);
+
+    if(!found_functions)
+    {
+      debug() << "Could not narrow down symbol possiblities " << symbol.name
+              << ":\n"
+              << looked_up_val.pretty() << eom;
+    }
+
     return found_functions;
   }
   else
@@ -339,6 +359,13 @@ bool remove_function_pointerst::try_get_call_from_index(
             found_functions ||
               try_get_call_from_symbol(func_expr, out_functions);
 
+          if(!found_functions)
+          {
+            debug() << "Not able to deal with specific entry in the array:\n"
+                    << func_expr.pretty() << eom;
+
+          }
+
           return found_functions;
         }
         else
@@ -374,16 +401,26 @@ bool remove_function_pointerst::try_get_call_from_index(
             }
 #endif
           }
+          if(out_functions.size()>0)
+          {
+            debug() << "Managed to resolve to an array of "
+                    << out_functions.size() << " values" << eom;
+          }
           return out_functions.size() > 0;
         }
       }
       else
       {
+        debug() << "Array of funciton pointers was not const so cannot "
+                << "optimize away the function pointer." << eom;
         return false;
       }
     }
     else
     {
+      debug() << "Couldn't get array from an index expression. "
+              << "The value of the array was:\n"
+              << index_expr.array().pretty() << eom;
       return false;
     }
   }
@@ -484,6 +521,9 @@ bool remove_function_pointerst::try_get_array_from_index(
     }
     else
     {
+      debug() << "Followed symbol " << array_symbol.name << " to get array."
+              << "However followed value is not an array:\n"
+              << array_value.pretty() << eom;
       return false;
     }
   }
@@ -718,6 +758,9 @@ void remove_function_pointerst::remove_function_pointer(
   assert(function.operands().size()==1);
 
   const exprt &pointer=function.op0();
+  debug() << "Attempting to optimize pointer:\n";
+  goto_program.output_instruction(ns, target->function, debug(), target);
+  debug() << eom;
 
   functionst functions;
   bool found_functions=false;
@@ -737,6 +780,11 @@ void remove_function_pointerst::remove_function_pointer(
     found_functions=
       found_functions || try_get_call_from_symbol(pointer, functions);
   }
+  else
+  {
+    debug() << "can't optimize FP since the original pointer is not const"
+            << eom;
+  }
 
   if(functions.size()==1)
   {
@@ -748,6 +796,12 @@ void remove_function_pointerst::remove_function_pointer(
   // any valid funcitons (or there are none??)
   if(!found_functions)
   {
+    debug() << "Failed to optimize away the function pointer\n"
+            << "The type was " << pointer.id()
+            << "irep dump:"
+            << pointer.pretty()
+            << eom;
+
     bool return_value_used=code.lhs().is_not_nil();
 
     // get all type-compatible functions
