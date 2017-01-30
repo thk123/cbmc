@@ -31,7 +31,7 @@ void func(){
   // Illegal:
   // container = container2;
   // container.fp_tbl = alternatate_fp_tbl;
-  void_fp fp = container.fp_tbl[1];
+  const void_fp fp = container.fp_tbl[1];
   fp();
 }
 

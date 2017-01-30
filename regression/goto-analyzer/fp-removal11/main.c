@@ -22,7 +22,7 @@ void func(){
   fp_tbl[0]=f2;
   fp_tbl[1]=f3;
   fp_tbl[2]=f4;
-  void_fp fp = fp_tbl[1];
+  const void_fp fp = fp_tbl[1];
   fp();
 }
 

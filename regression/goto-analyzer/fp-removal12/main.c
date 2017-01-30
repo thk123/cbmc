@@ -29,7 +29,7 @@ void func(){
   fp_container container2 = { .fp_tbl = {f5 ,f6, f7} };
   // Illegal:
   // container = container2;
-  void_fp fp = container.fp_tbl[1];
+  const void_fp fp = container.fp_tbl[1];
   fp();
 }
 

@@ -20,7 +20,7 @@ const void_fp fp_all[] = {f1, f2 ,f3, f4, f5 ,f6, f7, f8, f9};
 
 void func(void_fp fp, int i){
   fp_tbl[2] = fp;
-  void_fp fp2 = fp_tbl[2];
+  const void_fp fp2 = fp_tbl[2];
   fp2();
 }
 
