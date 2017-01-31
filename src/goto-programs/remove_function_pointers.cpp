@@ -805,8 +805,13 @@ void remove_function_pointerst::remove_function_pointer(
   found_functions=found_functions ||
     try_get_from_address_of(pointer, functions);
 
+  // Attempt to resolve access to function pointers through symbols
   found_functions=
     found_functions || try_get_call_from_symbol(pointer, functions);
+
+  // Attempt to resolve access to function pointers through array indices
+  found_functions=
+    found_functions || try_get_call_from_index(pointer, functions);
 #if 0
   else
   {
