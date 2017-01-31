@@ -271,6 +271,14 @@ bool remove_function_pointerst::try_get_call_from_symbol(
 {
   if(symbol_expr.id()==ID_symbol)
   {
+    const c_qualifierst pointer_qualifers(symbol_expr.type());
+    if(!pointer_qualifers.is_constant)
+    {
+      debug() << "Can't optimize FP since symbol "
+              << symbol_expr.get(ID_identifier) << "is not const" << eom;
+      return false;
+    }
+
     const symbolt &symbol=
       symbol_table.lookup(symbol_expr.get(ID_identifier));
     const exprt &looked_up_val=symbol.value;
@@ -791,27 +799,19 @@ void remove_function_pointerst::remove_function_pointer(
   functionst functions;
   bool found_functions=false;
 
-  const c_qualifierst pointer_qualifers(pointer.type());
-
   // This can happen for example with
   // (*(&f2))();
   // In this case we don't need constant check - implict
   found_functions=found_functions ||
     try_get_from_address_of(pointer, functions);
 
-  // If it is a symbol (except in the case where the symbol is the function
-  // symbol itself) then the symbol must be const or else can be reassigned.
-  if(pointer_qualifers.is_constant)
-  {
-    found_functions=
-      found_functions || try_get_call_from_symbol(pointer, functions)
-                      || try_get_call_from_index(pointer, functions);
-
-    if (pointer.id() == ID_member)
-      debug() << "Need to handle constant structs" << eom;
-  }
+  found_functions=
+    found_functions || try_get_call_from_symbol(pointer, functions);
+#if 0
   else
   {
+    if (pointer.id() == ID_member)
+      debug() << "Need to handle constant structs" << eom;
     if (pointer.id() == ID_member)
     {
       member_exprt me(to_member_expr(pointer));
@@ -846,10 +846,9 @@ void remove_function_pointerst::remove_function_pointer(
         }
       }
     }
-    debug() << "Can't optimize FP since the original pointer is not const"
-            << eom;
   done :;
   }
+#endif
 
   if(functions.size()==1)
   {
