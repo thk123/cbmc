@@ -782,7 +782,7 @@ void remove_function_pointerst::remove_function_pointer(
   }
   else
   {
-    debug() << "can't optimize FP since the original pointer is not const"
+    debug() << "Can't optimize FP since the original pointer is not const"
             << eom;
   }
 
@@ -797,8 +797,8 @@ void remove_function_pointerst::remove_function_pointer(
   if(!found_functions)
   {
     debug() << "Failed to optimize away the function pointer\n"
-            << "The type was " << pointer.id()
-            << "irep dump:"
+            << "The type was " << pointer.id() << " "
+            << "irep dump:\n"
             << pointer.pretty()
             << eom;
 
