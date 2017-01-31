@@ -100,11 +100,18 @@ private:
   bool try_get_call_from_index(
     const exprt &index_expr, functionst &out_functions);
 
+  bool try_get_call_from_member_of(
+    const exprt &member_expr, functionst out_functions);
+
   bool try_evaluate_index_value(
     const exprt &index_value_expr, mp_integer &out_array_index);
 
   bool try_get_array_from_index(
     const index_exprt &index_expr, array_exprt &out_array_expr);
+
+  bool try_get_struct_from_member(
+    const member_exprt &member_expr, struct_exprt &out_struct_expr);
+
 };
 
 /*******************************************************************\
@@ -275,7 +282,7 @@ bool remove_function_pointerst::try_get_call_from_symbol(
     if(!pointer_qualifers.is_constant)
     {
       debug() << "Can't optimize FP since symbol "
-              << symbol_expr.get(ID_identifier) << "is not const" << eom;
+              << symbol_expr.get(ID_identifier) << " is not const" << eom;
       return false;
     }
 
@@ -293,6 +300,9 @@ bool remove_function_pointerst::try_get_call_from_symbol(
       found_functions || try_get_from_address_of(looked_up_val, out_functions);
     found_functions=
       found_functions || try_get_call_from_index(looked_up_val, out_functions);
+    found_functions=
+      found_functions ||
+        try_get_call_from_member_of(looked_up_val, out_functions);
     found_functions=
       found_functions || try_get_call_from_symbol(looked_up_val, out_functions);
 
@@ -464,6 +474,94 @@ bool remove_function_pointerst::try_get_call_from_index(
   }
 }
 
+bool remove_function_pointerst::try_get_call_from_member_of(
+  const exprt &expr, functionst out_functions)
+{
+  if (expr.id()==ID_member)
+  {
+    const member_exprt &member_expr=to_member_expr(expr);
+
+    // Try to convert the compound into a struct (is that the only thing it
+    // can be?)
+    struct_exprt struct_expr;
+    bool found_struct=try_get_struct_from_member(member_expr, struct_expr);
+
+    if(found_struct)
+    {
+      const size_t component_position=member_expr.get_component_number();
+      const exprt &component_value=struct_expr.operands()[component_position];
+      // Here we require either the struct variable be const or
+      // the pointer inside the struct to be const (or both).
+
+      // Struct variable itself is const?
+      const typet &array_type=struct_expr.type();
+      c_qualifierst struct_qaulifiers;
+      struct_qaulifiers.read(array_type);
+
+      // The component is const?
+      const typet &component_type=component_value.type();
+      c_qualifierst component_qaulifiers;
+      component_qaulifiers.read(component_type);
+
+      if(struct_qaulifiers.is_constant || component_qaulifiers.is_constant)
+      {
+          exprt precise_match;
+          if(try_get_precise_call(component_value, precise_match))
+          {
+            out_functions.push_back(precise_match);
+            return true;
+          }
+          bool found_functions=false;
+          found_functions=
+            found_functions ||
+              try_get_from_address_of(component_value, out_functions);
+          found_functions=
+            found_functions ||
+              try_get_call_from_symbol(component_value, out_functions);
+
+          if(!found_functions)
+          {
+            debug() << "Not able to deal with specific entry in the array:\n"
+                    << component_value.pretty() << eom;
+
+          }
+
+          return found_functions;
+      }
+      else
+      {
+        debug() << "Neither the component " << member_expr.get_component_name()
+                << " nor the struct variable are const so cannot "
+                << "optimize away the function pointer." << eom;
+        return false;
+      }
+#if 0
+    if (comp.id()==ID_index)
+    {
+
+      index_exprt index_expr(to_index_expr(comp));
+      exprt arr(ie.array());
+      if (arr.id() == ID_symbol)
+      {
+        // BUG : arrays of structures are not marked as const in the symbol table
+        debug() << "Likely case of the array of struct issues"
+                << eom;
+        goto done;
+      }
+    }
+#endif
+    }
+    else
+    {
+      return false;
+    }
+  }
+  else
+  {
+    return false;
+  }
+}
+
 /*******************************************************************\
 
 Function: remove_function_pointerst::try_evaluate_index_value
@@ -558,6 +656,41 @@ bool remove_function_pointerst::try_get_array_from_index(
       debug() << "Followed symbol " << array_symbol.name << " to get array."
               << "However followed value is not an array:\n"
               << array_value.pretty() << eom;
+      return false;
+    }
+  }
+  else
+  {
+    return false;
+  }
+}
+
+bool remove_function_pointerst::try_get_struct_from_member(
+  const member_exprt &member_expr, struct_exprt &out_struct_expr)
+{
+  const exprt &potential_struct_expr=member_expr.compound();
+  if(potential_struct_expr.id()==ID_struct)
+  {
+    out_struct_expr=to_struct_expr(potential_struct_expr);
+    return true;
+  }
+  else if(potential_struct_expr.id()==ID_symbol)
+  {
+    // Is there some existing code to follow symbols to the real value?
+    const symbolt &struct_symbol=
+      symbol_table.lookup(potential_struct_expr.get(ID_identifier));
+
+    const exprt &struct_value=struct_symbol.value;
+    if(struct_value.id()==ID_struct)
+    {
+      out_struct_expr=to_struct_expr(struct_value);
+      return true;
+    }
+    else
+    {
+      debug() << "Followed symbol " << struct_symbol.name << " to get array."
+              << "However followed value is not a struct:\n"
+              << struct_value.pretty() << eom;
       return false;
     }
   }
@@ -812,6 +945,9 @@ void remove_function_pointerst::remove_function_pointer(
   // Attempt to resolve access to function pointers through array indices
   found_functions=
     found_functions || try_get_call_from_index(pointer, functions);
+
+  found_functions=
+    found_functions || try_get_call_from_member_of(pointer, functions);
 #if 0
   else
   {
