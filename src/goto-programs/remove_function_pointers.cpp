@@ -371,6 +371,8 @@ bool remove_function_pointerst::try_get_call_from_index(
         }
         else
         {
+          bool null_found=false;
+
           // We don't know what index it is,
           // but we know the value is from the array
           for(const exprt &oop : array_expr.operands())
@@ -405,6 +407,13 @@ bool remove_function_pointerst::try_get_call_from_index(
             // I.E. (...) ? f00 + f01
             // simplify should be able to help here but is not the complete solution
             // the notion of type compatability above might also be useful
+
+            if (op.is_zero())
+            {
+              null_found = true;
+              continue; // WRONG! <- why?
+            }
+
             if(!found_functions)
             {
               out_functions.clear();
@@ -414,6 +423,10 @@ bool remove_function_pointerst::try_get_call_from_index(
             }
 #endif
           }
+
+          if (null_found)
+            debug() << "Array contains NULL pointer" << eom;
+
           if(out_functions.size()>0)
           {
             debug() << "Managed to resolve to an array of "
