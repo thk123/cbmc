@@ -378,6 +378,8 @@ bool remove_function_pointerst::try_get_call_from_index(
             exprt op = simplify_expr(oop, ns); // HACK!
             // There are cases where this is not sufficient
             // I.E. int f00 (void)   and  ((void)(*)(void))f00
+            // ^^^^ is this even legal? Not certain, but I think the standard
+            // says this is UB since
             exprt precise_match;
             bool found_functions=false;
             if(try_get_precise_call(op, precise_match))
@@ -799,7 +801,7 @@ void remove_function_pointerst::remove_function_pointer(
       exprt comp(me.compound());
       if (comp.id() == ID_index)
       {
-        index_exprt ie(to_index_expr(me.compound()));
+        index_exprt ie(to_index_expr(comp));
         exprt arr(ie.array());
         if (arr.id() == ID_symbol)
         {
@@ -811,7 +813,20 @@ void remove_function_pointerst::remove_function_pointer(
       }
       else if (comp.id() == ID_dereference)
       {
-        //dereference_exprt dr();
+        dereference_exprt dr(to_dereference_expr(comp));
+        exprt ptr(dr.pointer());
+        if (ptr.id() == ID_index)
+        {
+          index_exprt ie(to_index_expr(ptr));
+          exprt arr(ie.array());
+          if (arr.id() == ID_symbol)
+          {
+            // BUG : no idea if these are marked as const or not
+            debug() << "Likely case of the array of pointers to struct issues"
+                    << eom;
+            goto done;
+          }
+        }
       }
     }
     debug() << "Can't optimize FP since the original pointer is not const"
