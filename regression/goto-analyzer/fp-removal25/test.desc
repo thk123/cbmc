@@ -1,4 +1,4 @@
-CORE
+KNOWNBUG
 main.c
 --show-goto-functions --verbosity 10
 
