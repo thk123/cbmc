@@ -793,8 +793,30 @@ void remove_function_pointerst::remove_function_pointer(
   }
   else
   {
+    if (pointer.id() == ID_member)
+    {
+      member_exprt me(to_member_expr(pointer));
+      exprt comp(me.compound());
+      if (comp.id() == ID_index)
+      {
+        index_exprt ie(to_index_expr(me.compound()));
+        exprt arr(ie.array());
+        if (arr.id() == ID_symbol)
+        {
+          // BUG : arrays of structures are not marked as const in the symbol table
+          debug() << "Likely case of the array of struct issues"
+                  << eom;
+          goto done;
+        }
+      }
+      else if (comp.id() == ID_dereference)
+      {
+        //dereference_exprt dr();
+      }
+    }
     debug() << "Can't optimize FP since the original pointer is not const"
             << eom;
+  done :;
   }
 
   if(functions.size()==1)
