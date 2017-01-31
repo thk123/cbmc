@@ -407,6 +407,7 @@ bool remove_function_pointerst::try_get_call_from_index(
             // the notion of type compatability above might also be useful
             if(!found_functions)
             {
+              out_functions.clear();
               debug() << "Could not convert an element of the constant array:\n"
                       << op.pretty() << eom;
               return false;
