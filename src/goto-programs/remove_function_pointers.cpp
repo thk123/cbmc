@@ -806,6 +806,9 @@ void remove_function_pointerst::remove_function_pointer(
     found_functions=
       found_functions || try_get_call_from_symbol(pointer, functions)
                       || try_get_call_from_index(pointer, functions);
+
+    if (pointer.id() == ID_member)
+      debug() << "Need to handle constant structs" << eom;
   }
   else
   {
