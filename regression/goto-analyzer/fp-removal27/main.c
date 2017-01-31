@@ -18,7 +18,8 @@ const void_fp fp_all[] = {f1, f2 ,f3, f4, f5 ,f6, f7, f8, f9};
 
 void func()
 {
-  const void_fp fp = f2;
+  void_fp fp = f2;
+  fp = f3;
   const void_fp fp2 = fp;
   fp2();
 }
