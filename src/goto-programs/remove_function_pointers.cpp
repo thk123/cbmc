@@ -17,6 +17,7 @@ Author: Daniel Kroening, kroening@kroening.com
 #include <util/std_expr.h>
 #include <util/type_eq.h>
 #include <util/message.h>
+#include <util/simplify_expr.h>
 
 #include <ansi-c/c_types.h>
 #include <ansi-c/c_qualifiers.h>
@@ -372,8 +373,11 @@ bool remove_function_pointerst::try_get_call_from_index(
         {
           // We don't know what index it is,
           // but we know the value is from the array
-          for(const exprt &op : array_expr.operands())
+          for(const exprt &oop : array_expr.operands())
           {
+            exprt op = simplify_expr(oop, ns); // HACK!
+            // There are cases where this is not sufficient
+            // I.E. int f00 (void)   and  ((void)(*)(void))f00
             exprt precise_match;
             bool found_functions=false;
             if(try_get_precise_call(op, precise_match))
@@ -393,6 +397,12 @@ bool remove_function_pointerst::try_get_call_from_index(
             // C code that an array can be const but the values changed). None
             // the less, erring on the side of caution for this build we just
             // say we know nothing about this array.
+
+            // It's not about the values changing, it's about expressions
+            // that can be evaluated at compile time.
+            // I.E. (...) ? f00 + f01
+            // simplify should be able to help here but is not the complete solution
+            // the notion of type compatability above might also be useful
             if(!found_functions)
             {
               debug() << "Could not convert an element of the constant array:\n"
@@ -778,7 +788,8 @@ void remove_function_pointerst::remove_function_pointer(
   if(pointer_qualifers.is_constant)
   {
     found_functions=
-      found_functions || try_get_call_from_symbol(pointer, functions);
+      found_functions || try_get_call_from_symbol(pointer, functions)
+                      || try_get_call_from_index(pointer, functions);
   }
   else
   {
