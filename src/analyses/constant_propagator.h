@@ -32,7 +32,7 @@ public:
   bool merge(
     const constant_propagator_domaint &other,
     locationt from,
-    locationt to) final override;
+    locationt to);
 
   virtual bool ai_simplify(
     exprt &condition,
