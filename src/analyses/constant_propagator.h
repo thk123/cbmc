@@ -22,36 +22,46 @@ public:
     locationt from,
     locationt to,
     ai_baset &ai_base,
-    const namespacet &ns);
+    const namespacet &ns) final override;
 
   virtual void output(
     std::ostream &out,
     const ai_baset &ai_base,
-    const namespacet &ns) const;
+    const namespacet &ns) const override;
 
   bool merge(
     const constant_propagator_domaint &other,
     locationt from,
-    locationt to);
+    locationt to) final override;
 
   virtual bool ai_simplify(
     exprt &condition,
     const namespacet &ns,
-    const bool lhs=false) const;
+    const bool lhs=false) const final override;
 
-  virtual void make_bottom()
+  virtual void make_bottom() final override
   {
     values.set_to_bottom();
   }
 
-  virtual void make_top()
+  virtual void make_top() final override
   {
     values.set_to_top();
   }
 
-  virtual void make_entry()
+  virtual void make_entry() final override
   {
     make_top();
+  }
+
+  virtual bool is_bottom() const final override
+  {
+    return values.is_bot();
+  }
+
+  virtual bool is_top() const final override
+  {
+    return values.is_top();
   }
 
   struct valuest
@@ -78,6 +88,16 @@ public:
     {
       replace_const.clear();
       is_bottom=false;
+    }
+
+    inline bool is_bot() const
+    {
+      return is_bottom && replace_const.empty();
+    }
+
+    inline bool is_top() const
+    {
+      return !is_bottom && replace_const.empty();
     }
 
     // set single identifier
