@@ -4,8 +4,36 @@
 int main(int argc, char *argv[])
 {
   // Test reading from an array using a pointer
+
+  int x = 4;
+  int y = 5;
+
+  int *xp = &x;
+  int **xpp = &xp;
+
+  **xpp = 10;
+  __CPROVER_assert(x==10);
+
+  int *ps[2] = {&x, &y};
+
+  int i;
+  if(argc > 2)
+  {
+    i=0;
+  }
+  else
+  {
+    i=1;
+  }
+  *(ps[i])=4;
+
+  __CPROVER_assert(x==4);
+  __CPROVER_assert(y==5);
+
   int a[3]={1, 2, 3};
   int *p=a;
+  p[1]=10;
+  __CPROVER_assert(a[1]==10);
   __CPROVER_assert(p==&a[0], "p==&a[0]");
 
   __CPROVER_assert(*p==1, "*p==1");
