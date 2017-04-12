@@ -19,7 +19,7 @@
 class continuation_stack_entryt
 {
 public:
-
+  virtual exprt get_access_expr() const=0;
 
 
 
@@ -29,6 +29,7 @@ class simple_entryt:public continuation_stack_entryt
 {
 public:
   simple_entryt(exprt expr);
+  virtual exprt get_access_expr() const override;
 private:
   exprt simple_entry;
 };
@@ -37,6 +38,7 @@ class offset_entryt:public continuation_stack_entryt
 {
 public:
   offset_entryt(abstract_object_pointert offset_value);
+  virtual exprt get_access_expr() const override;
 private:
   abstract_object_pointert offset;
 };
@@ -58,7 +60,9 @@ private:
 class continuation_stackt
 {
 public:
-  typedef std::stack<std::unique_ptr<continuation_stack_entryt>> continuation_stack_storet;
+  typedef std::vector<std::shared_ptr<continuation_stack_entryt>> continuation_stack_storet;
+
+  continuation_stackt();
 
   continuation_stackt(
     const exprt & expr,
@@ -66,6 +70,7 @@ public:
     const namespacet &ns);
 
   exprt to_expression() const;
+  bool is_top_value() const;
 
   void append_stack(const continuation_stack_storet &stack_to_append);
 
@@ -73,7 +78,7 @@ private:
   friend class test_continuation_stackt;
 
   continuation_stack_storet stack;
-
+  bool junk_stack;
 };
 
 #endif // CONTINUATION_STACK_ENTRY_H
