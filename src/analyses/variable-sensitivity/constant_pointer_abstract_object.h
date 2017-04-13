@@ -11,7 +11,7 @@
 #include <iosfwd>
 
 #include <analyses/variable-sensitivity/pointer_abstract_object.h>
-#include <analyses/variable-sensitivity/continuation_stack_entry.h>
+#include <analyses/variable-sensitivity/continuation_stack.h>
 
 class constant_pointer_abstract_objectt:public pointer_abstract_objectt
 {
