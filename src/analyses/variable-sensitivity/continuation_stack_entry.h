@@ -1,6 +1,6 @@
 /*******************************************************************\
 
- Module: MODULE NAME
+ Module: Analyses Variable Sensitivity
 
  Author: DiffBlue Limited. All rights reserved.
 
@@ -20,7 +20,10 @@ class continuation_stack_entryt
 {
 public:
   virtual exprt get_access_expr() const=0;
-
+  virtual bool try_squash_in(
+    std::shared_ptr<const continuation_stack_entryt> new_entry,
+    const abstract_environmentt &enviroment,
+    const namespacet &ns);
 
 
 };
@@ -39,6 +42,10 @@ class offset_entryt:public continuation_stack_entryt
 public:
   offset_entryt(abstract_object_pointert offset_value);
   virtual exprt get_access_expr() const override;
+  virtual bool try_squash_in(
+    std::shared_ptr<const continuation_stack_entryt> new_entry,
+    const abstract_environmentt &enviroment,
+    const namespacet &ns) override;
 private:
   abstract_object_pointert offset;
 };
@@ -60,7 +67,8 @@ private:
 class continuation_stackt
 {
 public:
-  typedef std::vector<std::shared_ptr<continuation_stack_entryt>> continuation_stack_storet;
+  typedef std::shared_ptr<continuation_stack_entryt> stack_entry_pointert;
+  typedef std::vector<stack_entry_pointert> continuation_stack_storet;
 
   continuation_stackt();
 
@@ -75,7 +83,7 @@ public:
   void append_stack(const continuation_stack_storet &stack_to_append);
 
 private:
-  friend class test_continuation_stackt;
+  void add_to_stack(stack_entry_pointert entry_pointer, const abstract_environmentt enviroment, const namespacet &ns);
 
   continuation_stack_storet stack;
   bool junk_stack;
