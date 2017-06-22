@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
   int *q=&a[1];
   __CPROVER_assert(q==p+1, "q==p+1");
   __CPROVER_assert(*q==2, "*q==2");
-  __CPROVER_assert(*(q-1)==1);
+  __CPROVER_assert(*(q-1)==1, "*(q-1)==1");
 
   // Test pointer diffs
   ptrdiff_t x=1;
