@@ -19,6 +19,7 @@
 class continuation_stack_entryt
 {
 public:
+  virtual ~continuation_stack_entryt() = default;
   virtual exprt get_access_expr() const=0;
   virtual bool try_squash_in(
     std::shared_ptr<const continuation_stack_entryt> new_entry,
