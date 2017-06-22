@@ -19,9 +19,37 @@ continuation_stackt::continuation_stackt():
 continuation_stackt::continuation_stackt(
   const exprt &expr, const abstract_environmentt &enviroment, const namespacet &ns)
 {
+  PRECONDITION(expr.type().id()==ID_pointer);
   exprt s=expr;
 
   junk_stack=false;
+
+  if(s.id()==ID_address_of)
+  {
+    // resovle reminder, can either be a symbol, member or index of
+    // otherwise unsupported
+  }
+  else if(s.id()==ID_plus)
+  {
+    // exactly one of the lhs or rhs need to resolve to a write stack
+    // and the other to an offset
+    // otherwise unsupported
+  }
+  else if(s.id()==ID_minus)
+  {
+    // the lhs must resolve to a write stack
+    // the rhs must resovle to an offset
+    // otherwise not supported
+  }
+  // I think at top level member expression is invalid (here we should just
+  // have copied the whole stack as the RHS is also a pointer value
+
+  // dereference could be in an offset (i.e. unrelated pointer to int and we
+  // use the value of the int to offset) so not valid at top level
+  // or could be a dereference that later gets turned back into an address
+  // In either case don't think it can be the head element
+
+
   while (s.id()!=ID_symbol)
   {
     if(s.id()==ID_address_of)
@@ -33,6 +61,9 @@ continuation_stackt::continuation_stackt(
       }
       else
       {
+        // Here we are assuming we are taking an address of an index expression - why is this implied by a non-empty stack?
+        // for stack to be not empty we need to have had another instruction
+        // what about &a[&a - &a]? - we probably don't need to support this
         exprt offset=to_index_expr(s.op0()).index();
         abstract_object_pointert offset_value=enviroment.eval(offset, ns);
         add_to_stack(std::make_shared<offset_entryt>(offset_value), enviroment, ns);
