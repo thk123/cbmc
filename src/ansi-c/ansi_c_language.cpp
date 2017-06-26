@@ -208,7 +208,7 @@ bool ansi_c_languaget::to_expr(
 
   // now remove that (void) cast
   if(expr.id()==ID_typecast &&
-     expr.type().id()==ID_empty &&
+     (expr.type().id()==ID_empty || expr.type().id()==ID_void) &&
      expr.operands().size()==1)
     expr=expr.op0();
 
