@@ -47,7 +47,7 @@ xmlt ai_domain_baset::output_xml(
 /// does simplify indices in arrays, members of structs and dereferencing of
 /// pointers
 /// \param condition: the expression to simplify
-/// \param ns: the namespace
+/// \param nonexistant: a non-existant parameter
 /// \return True if condition did not change. False otherwise. condition will be
 ///   updated with the simplified condition if it has worked
 bool ai_domain_baset::ai_simplify_lhs(
