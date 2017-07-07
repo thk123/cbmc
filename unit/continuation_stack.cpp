@@ -48,33 +48,67 @@ private:
 };
 
 
-/// Verify a given index_exprt index is a constant value equal to the
+/// Verify a given exprt is an index_exprt with a a constant value equal to the
 /// expected value
-/// \param index_expr: The index expression.
+/// \param expr: The expression.
 /// \param expected_index: The constant value that should be the index.
-void require_index(const index_exprt &index_expr, int expected_index)
+/// \return The expr cast to an index_exprt
+index_exprt require_index(const exprt &expr, int expected_index)
 {
+  REQUIRE(expr.id()==ID_index);
+  const index_exprt &index_expr=to_index_expr(expr);
   REQUIRE(index_expr.index().id()==ID_constant);
   const constant_exprt &index_value=to_constant_expr(index_expr.index());
   mp_integer index_integer_value;
   to_integer(index_value, index_integer_value);
   REQUIRE(index_integer_value==expected_index);
+
+  return index_expr;
 }
 
-void require_member(const exprt &expr, const irep_idt &component_identifier)
+/// Verify a given exprt is an index_exprt with a nil value as its index
+/// \param expr: The expression.
+/// \return The expr cast to an index_exprt
+index_exprt require_top_index(const exprt &expr)
+{
+  REQUIRE(expr.id()==ID_index);
+  const index_exprt &index_expr=to_index_expr(expr);
+  REQUIRE(index_expr.index().id()==ID_nil);
+  return index_expr;
+}
+
+/// Verify a given exprt is an member_exprt with a component name equal to the
+/// component_identifier
+/// \param expr: The expression.
+/// \param component_identifier: The name of the component that should be being
+///   accessed.
+/// \return The expr cast to a member_exprt.
+member_exprt require_member(
+  const exprt &expr, const irep_idt &component_identifier)
 {
   REQUIRE(expr.id()==ID_member);
   const member_exprt &member_expr=to_member_expr(expr);
   REQUIRE(member_expr.get_component_name()==component_identifier);
+  return member_expr;
 }
 
-void require_symbol(const exprt &expr, const irep_idt &symbol_name)
+/// Verify a given exprt is an symbol_exprt with a identifier name equal to the
+/// symbol_name.
+/// \param expr: The expression.
+/// \param symbol_name: The intended identifier of the symbol
+/// \return The expr cast to a symbol_exprt
+symbol_exprt require_symbol(const exprt &expr, const irep_idt &symbol_name)
 {
   REQUIRE(expr.id()==ID_symbol);
   const symbol_exprt &symbol_expr=to_symbol_expr(expr);
   REQUIRE(symbol_expr.get_identifier()==symbol_name);
+  return symbol_expr;
 }
 
+/// Create a lvalue symbol of the specified type.
+/// \param name: The name of the symbol.
+/// \param type: The type of the symbol.
+/// \return The symbol that has been created.
 symbolt create_basic_symbol(const irep_idt &name, const typet &type)
 {
   symbolt basic_symbol;
@@ -84,7 +118,6 @@ symbolt create_basic_symbol(const irep_idt &name, const typet &type)
   basic_symbol.is_lvalue=true;
   return basic_symbol;
 }
-
 
 SCENARIO("Constructing write stacks",
   "[core][analyses][variable-sensitivity][continuation-stack]")
@@ -108,13 +141,7 @@ SCENARIO("Constructing write stacks",
   GIVEN("A int x")
   {
     typet basic_symbol_type=signedbv_typet(32);
-
-    symbolt basic_symbol;
-    basic_symbol.name="x";
-    basic_symbol.base_name="x";
-    basic_symbol.type=basic_symbol_type;
-    basic_symbol.is_lvalue=true;
-    symbol_table.add(basic_symbol);
+    symbol_table.add(create_basic_symbol("x", basic_symbol_type));
 
     WHEN("Constructing from &x")
     {
@@ -130,7 +157,7 @@ SCENARIO("Constructing write stacks",
 
         REQUIRE(out_expr.id()==ID_address_of);
         const exprt &object=out_expr.op0();
-        REQUIRE(object.id()==ID_symbol);
+        require_symbol(object, "x");
       }
     }
   }
@@ -138,13 +165,7 @@ SCENARIO("Constructing write stacks",
   {
     typet array_type=
       array_typet(signedbv_typet(32), constant_exprt::integer_constant(5));
-
-    symbolt array_symbol;
-    array_symbol.name="a";
-    array_symbol.base_name="a";
-    array_symbol.type=array_type;
-    array_symbol.is_lvalue=true;
-    symbol_table.add(array_symbol);
+    symbol_table.add(create_basic_symbol("a", array_type));
 
     WHEN("Constructing from a")
     {
@@ -157,10 +178,8 @@ SCENARIO("Constructing write stacks",
         CAPTURE(expr2c(out_expr, ns));
 
         REQUIRE(out_expr.id()==ID_address_of);
-        const exprt &object=out_expr.op0();
-        REQUIRE(object.id()==ID_index);
-        REQUIRE(object.op0().id()==ID_symbol);
-        REQUIRE(object.op1().id()==ID_constant);
+        const index_exprt &index_expr=require_index(out_expr.op0(), 0);
+        require_symbol(index_expr.array(), "a");
       }
     }
     WHEN("Constructing from &a")
@@ -176,8 +195,7 @@ SCENARIO("Constructing write stacks",
 
         // TODO: make consistent with above
         REQUIRE(out_expr.id()==ID_address_of);
-        const exprt &object=out_expr.op0();
-        REQUIRE(object.id()==ID_symbol);
+        require_symbol(out_expr.op0(), "a");
       }
     }
     WHEN("Constructing from &a[0]")
@@ -194,9 +212,8 @@ SCENARIO("Constructing write stacks",
 
         REQUIRE(out_expr.id()==ID_address_of);
         const exprt &object=out_expr.op0();
-        REQUIRE(object.id()==ID_index);
-        REQUIRE(object.op0().id()==ID_symbol);
-        REQUIRE(object.op1().id()==ID_constant);
+        const index_exprt &index_expr=require_index(object, 0);
+        require_symbol(index_expr.array(), "a");
       }
     }
     WHEN("Constructing from &a[1]")
@@ -212,14 +229,8 @@ SCENARIO("Constructing write stacks",
         CAPTURE(expr2c(out_expr, ns));
 
         REQUIRE(out_expr.id()==ID_address_of);
-        const exprt &object=out_expr.op0();
-        REQUIRE(object.id()==ID_index);
-        REQUIRE(object.op0().id()==ID_symbol);
-        REQUIRE(object.op1().id()==ID_constant);
-        const constant_exprt &index_value=to_constant_expr(object.op1());
-        mp_integer index_integer_value;
-        to_integer(index_value, index_integer_value);
-        REQUIRE(index_integer_value==1);
+        const index_exprt &index_expr=require_index(out_expr.op0(), 1);
+        require_symbol(index_expr.array(), "a");
       }
     }
     WHEN("Constructing from &a[0]+1")
@@ -235,14 +246,8 @@ SCENARIO("Constructing write stacks",
         CAPTURE(expr2c(out_expr, ns));
 
         REQUIRE(out_expr.id()==ID_address_of);
-        const exprt &object=out_expr.op0();
-        REQUIRE(object.id()==ID_index);
-        REQUIRE(object.op0().id()==ID_symbol);
-        REQUIRE(object.op1().id()==ID_constant);
-        const constant_exprt &index_value=to_constant_expr(object.op1());
-        mp_integer index_integer_value;
-        to_integer(index_value, index_integer_value);
-        REQUIRE(index_integer_value==1);
+        const index_exprt &index_expr=require_index(out_expr.op0(), 1);
+        require_symbol(index_expr.array(), "a");
       }
     }
     WHEN("Constructing from &a[1]+1")
@@ -259,14 +264,8 @@ SCENARIO("Constructing write stacks",
         CAPTURE(expr2c(out_expr, ns));
 
         REQUIRE(out_expr.id()==ID_address_of);
-        const exprt &object=out_expr.op0();
-        REQUIRE(object.id()==ID_index);
-        REQUIRE(object.op0().id()==ID_symbol);
-        REQUIRE(object.op1().id()==ID_constant);
-        const constant_exprt &index_value=to_constant_expr(object.op1());
-        mp_integer index_integer_value;
-        to_integer(index_value, index_integer_value);
-        REQUIRE(index_integer_value==2);
+        const index_exprt &index_expr=require_index(out_expr.op0(), 2);
+        require_symbol(index_expr.array(), "a");
       }
     }
     WHEN("Constructing from &a[1]-1")
@@ -283,14 +282,8 @@ SCENARIO("Constructing write stacks",
         CAPTURE(expr2c(out_expr, ns));
 
         REQUIRE(out_expr.id()==ID_address_of);
-        const exprt &object=out_expr.op0();
-        REQUIRE(object.id()==ID_index);
-        REQUIRE(object.op0().id()==ID_symbol);
-        REQUIRE(object.op1().id()==ID_constant);
-        const constant_exprt &index_value=to_constant_expr(object.op1());
-        mp_integer index_integer_value;
-        to_integer(index_value, index_integer_value);
-        REQUIRE(index_integer_value==0);
+        const index_exprt &index_expr=require_index(out_expr.op0(), 0);
+        require_symbol(index_expr.array(), "a");
       }
     }
     WHEN("Constructing from 1+&a[1]")
@@ -307,25 +300,14 @@ SCENARIO("Constructing write stacks",
         CAPTURE(expr2c(out_expr, ns));
 
         REQUIRE(out_expr.id()==ID_address_of);
-        const exprt &object=out_expr.op0();
-        REQUIRE(object.id()==ID_index);
-        REQUIRE(object.op0().id()==ID_symbol);
-        REQUIRE(object.op1().id()==ID_constant);
-        const constant_exprt &index_value=to_constant_expr(object.op1());
-        mp_integer index_integer_value;
-        to_integer(index_value, index_integer_value);
-        REQUIRE(index_integer_value==2);
+        const index_exprt &index_expr=require_index(out_expr.op0(), 2);
+        require_symbol(index_expr.array(), "a");
       }
     }
     GIVEN("A symbol int x")
     {
       typet basic_symbol_type=signedbv_typet(32);
-
-      symbolt basic_symbol;
-      basic_symbol.name="x";
-      basic_symbol.base_name="x";
-      basic_symbol.type=basic_symbol_type;
-      basic_symbol.is_lvalue=true;
+      symbolt basic_symbol=create_basic_symbol("x", basic_symbol_type);
       symbol_table.add(basic_symbol);
 
       WHEN("Constructing from &a[x] (x top)")
@@ -341,10 +323,8 @@ SCENARIO("Constructing write stacks",
           CAPTURE(expr2c(out_expr, ns));
 
           REQUIRE(out_expr.id()==ID_address_of);
-          const exprt &object=out_expr.op0();
-          REQUIRE(object.id()==ID_index);
-          REQUIRE(object.op0().id()==ID_symbol);
-          REQUIRE(object.op1().id()==ID_nil);
+          const index_exprt &index_expr=require_top_index(out_expr.op0());
+          require_symbol(index_expr.array(), "a");
         }
       }
       WHEN("Constructing from &a[x] (x known to be 2")
@@ -368,14 +348,8 @@ SCENARIO("Constructing write stacks",
           CAPTURE(expr2c(out_expr, ns));
 
           REQUIRE(out_expr.id()==ID_address_of);
-          const exprt &object=out_expr.op0();
-          REQUIRE(object.id()==ID_index);
-          REQUIRE(object.op0().id()==ID_symbol);
-          REQUIRE(object.op1().id()==ID_constant);
-          const constant_exprt &index_value=to_constant_expr(object.op1());
-          mp_integer index_integer_value;
-          to_integer(index_value, index_integer_value);
-          REQUIRE(index_integer_value==2);
+          const index_exprt &index_expr=require_index(out_expr.op0(), 2);
+          require_symbol(index_expr.array(), "a");
         }
       }
     }
@@ -400,12 +374,7 @@ SCENARIO("Constructing write stacks",
 
     GIVEN("A struct str s")
     {
-      symbolt struct_variable;
-      struct_variable.base_name="s";
-      struct_variable.name="s";
-      struct_variable.type=struct_type;
-      struct_variable.is_lvalue=true;
-      symbol_table.add(struct_variable);
+      symbol_table.add(create_basic_symbol("s", struct_type));
 
       WHEN("Constructing from &s.comp")
       {
@@ -420,11 +389,10 @@ SCENARIO("Constructing write stacks",
           CAPTURE(expr2c(out_expr, ns));
 
           REQUIRE(out_expr.id()==ID_address_of);
-          const exprt &object=out_expr.op0();
-
-          REQUIRE(object.id()==ID_member);
+          const member_exprt &member_exrp=
+            require_member(out_expr.op0(), "comp");
           // TODO: verify member expr
-          REQUIRE(object.op0().id()==ID_symbol);
+          require_symbol(member_exrp.compound(), "s");
         }
       }
       WHEN("Constructing from &s.comp2")
@@ -440,11 +408,10 @@ SCENARIO("Constructing write stacks",
           CAPTURE(expr2c(out_expr, ns));
 
           REQUIRE(out_expr.id()==ID_address_of);
-          const exprt &object=out_expr.op0();
-
-          REQUIRE(object.id()==ID_member);
+          const member_exprt &member_exrp=
+            require_member(out_expr.op0(), "comp2");
           // TODO: verify member expr
-          REQUIRE(object.op0().id()==ID_symbol);
+          require_symbol(member_exrp.compound(), "s");
         }
       }
       WHEN("Constructing from &s")
@@ -482,13 +449,7 @@ SCENARIO("Constructing write stacks",
     {
       typet array_type=
         array_typet(struct_type, constant_exprt::integer_constant(5));
-
-      symbolt struct_array_symbol;
-      struct_array_symbol.name="arr_s";
-      struct_array_symbol.base_name="arr_s";
-      struct_array_symbol.type=array_type;
-      struct_array_symbol.is_lvalue=true;
-      symbol_table.add(struct_array_symbol);
+      symbol_table.add(create_basic_symbol("arr_s", array_type));
 
       WHEN("&arr_s[1].comp")
       {
@@ -503,13 +464,11 @@ SCENARIO("Constructing write stacks",
           CAPTURE(expr2c(out_expr, ns));
 
           REQUIRE(out_expr.id()==ID_address_of);
-          const exprt &object=out_expr.op0();
 
-          require_member(object, "comp");
-          REQUIRE(object.op0().id()==ID_index);
-          index_exprt index_expr=to_index_expr(object.op0());
+          const member_exprt &member_expr=require_member(out_expr.op0(), "comp");
+          const index_exprt &index_expr=
+            require_index(member_expr.compound(), 1);
 
-          require_index(index_expr, 1);
           require_symbol(index_expr.array(), "arr_s");
         }
       }
@@ -543,13 +502,12 @@ SCENARIO("Constructing write stacks",
             CAPTURE(expr2c(out_expr, ns));
 
             REQUIRE(out_expr.id()==ID_address_of);
-            const exprt &object=out_expr.op0();
+            const member_exprt &member_expr=
+              require_member(out_expr.op0(), "comp");
 
-            require_member(object, "comp");
-            REQUIRE(object.op0().id()==ID_index);
-            index_exprt index_expr=to_index_expr(object.op0());
+            const index_exprt &index_expr=
+              require_top_index(member_expr.compound());
 
-            REQUIRE(index_expr.index().id()==ID_nil);
             require_symbol(index_expr.array(), "arr_s");
           }
         }
