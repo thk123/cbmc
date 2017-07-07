@@ -8,6 +8,7 @@
 #include <unordered_set>
 
 #include <util/std_expr.h>
+#include <util/simplify_expr.h>
 
 #include "continuation_stack.h"
 
@@ -19,11 +20,22 @@ continuation_stackt::continuation_stackt():
 continuation_stackt::continuation_stackt(
   const exprt &expr, const abstract_environmentt &enviroment, const namespacet &ns)
 {
-  PRECONDITION(expr.type().id()==ID_pointer);
-  exprt s=expr;
-
   junk_stack=false;
-
+  if(expr.type().id()==ID_array)
+  {
+    // We are assigning an array to a pointer, which is equivalent to assigning
+    // the first element of that arary
+    // &(expr)[0]
+    construct_root(
+      address_of_exprt(
+        index_exprt(
+          expr, constant_exprt::integer_constant(0))), enviroment, ns);
+  }
+  else
+  {
+    construct_root(expr, enviroment, ns);
+  }
+#if 0
   if(s.id()==ID_address_of)
   {
     // resovle reminder, can either be a symbol, member or index of
@@ -48,7 +60,23 @@ continuation_stackt::continuation_stackt(
   // use the value of the int to offset) so not valid at top level
   // or could be a dereference that later gets turned back into an address
   // In either case don't think it can be the head element
+#endif
+}
 
+void continuation_stackt::construct_root(
+  const exprt &expr, const abstract_environmentt &enviroment, const namespacet &ns)
+{
+  PRECONDITION(expr.type().id()==ID_pointer);
+  PRECONDITION(stack.empty());
+
+  // If we are a pointer to a struct, we do not currently support reading
+  // writing directly to it so just create a top stack
+  if(ns.follow(expr.type().subtype()).id()==ID_struct)
+  {
+    junk_stack=true;
+    return;
+  }
+  exprt s=expr;
 
   while (s.id()!=ID_symbol)
   {
@@ -64,10 +92,21 @@ continuation_stackt::continuation_stackt(
         // Here we are assuming we are taking an address of an index expression - why is this implied by a non-empty stack?
         // for stack to be not empty we need to have had another instruction
         // what about &a[&a - &a]? - we probably don't need to support this
-        exprt offset=to_index_expr(s.op0()).index();
-        abstract_object_pointert offset_value=enviroment.eval(offset, ns);
-        add_to_stack(std::make_shared<offset_entryt>(offset_value), enviroment, ns);
-        s=s.op0().op0();
+        // it isn't implied, consider (&s.comp) + 1
+        if(s.op0().id()==ID_index)
+        {
+          exprt offset=to_index_expr(s.op0()).index();
+          abstract_object_pointert offset_value=enviroment.eval(offset, ns);
+          add_to_stack(std::make_shared<offset_entryt>(offset_value), enviroment, ns);
+          s=s.op0().op0();
+        }
+        else
+        {
+          // give up - we don't support pointer arithmetic that isn't just indexing
+          // an array
+          junk_stack=true;
+          break;
+        }
       }
 
     }
@@ -148,6 +187,8 @@ bool continuation_stackt::is_top_value() const
 {
   return junk_stack;
 }
+
+
 
 void continuation_stackt::add_to_stack(
   continuation_stackt::stack_entry_pointert entry_pointer,

@@ -42,6 +42,13 @@ public:
   void append_stack(const continuation_stack_storet &stack_to_append);
 
 private:
+  void construct_root(
+    const exprt & expr,
+    const abstract_environmentt &enviroment,
+    const namespacet &ns);
+
+
+
   void add_to_stack(
     stack_entry_pointert entry_pointer,
     const abstract_environmentt enviroment,
