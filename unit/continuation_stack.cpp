@@ -29,22 +29,7 @@
 
 #include <src/expr/require_expr.h>
 #include <src/ansi-c/c_to_expr.h>
-
-
-
-/// Create a lvalue symbol of the specified type.
-/// \param name: The name of the symbol.
-/// \param type: The type of the symbol.
-/// \return The symbol that has been created.
-symbolt create_basic_symbol(const irep_idt &name, const typet &type)
-{
-  symbolt basic_symbol;
-  basic_symbol.name=name;
-  basic_symbol.base_name=name;
-  basic_symbol.type=type;
-  basic_symbol.is_lvalue=true;
-  return basic_symbol;
-}
+#include <src/symbol-table/symbol_table_util.h>
 
 SCENARIO("Constructing write stacks",
   "[core][analyses][variable-sensitivity][continuation-stack]")
@@ -68,7 +53,8 @@ SCENARIO("Constructing write stacks",
   GIVEN("A int x")
   {
     typet basic_symbol_type=signedbv_typet(32);
-    symbol_table.add(create_basic_symbol("x", basic_symbol_type));
+    symbol_table.add(
+      symbol_table_utilt::create_basic_symbol("x", basic_symbol_type));
 
     WHEN("Constructing from &x")
     {
@@ -92,7 +78,7 @@ SCENARIO("Constructing write stacks",
   {
     typet array_type=
       array_typet(signedbv_typet(32), constant_exprt::integer_constant(5));
-    symbol_table.add(create_basic_symbol("a", array_type));
+    symbol_table.add(symbol_table_utilt::create_basic_symbol("a", array_type));
 
     WHEN("Constructing from a")
     {
@@ -241,7 +227,8 @@ SCENARIO("Constructing write stacks",
     GIVEN("A symbol int x")
     {
       typet basic_symbol_type=signedbv_typet(32);
-      symbolt basic_symbol=create_basic_symbol("x", basic_symbol_type);
+      symbolt basic_symbol=
+        symbol_table_utilt::create_basic_symbol("x", basic_symbol_type);
       symbol_table.add(basic_symbol);
 
       WHEN("Constructing from &a[x] (x top)")
@@ -310,7 +297,8 @@ SCENARIO("Constructing write stacks",
 
     GIVEN("A struct str s")
     {
-      symbol_table.add(create_basic_symbol("s", struct_type));
+      symbol_table.add(
+        symbol_table_utilt::create_basic_symbol("s", struct_type));
 
       WHEN("Constructing from &s.comp")
       {
@@ -385,7 +373,8 @@ SCENARIO("Constructing write stacks",
     {
       typet array_type=
         array_typet(struct_type, constant_exprt::integer_constant(5));
-      symbol_table.add(create_basic_symbol("arr_s", array_type));
+      symbol_table.add(
+        symbol_table_utilt::create_basic_symbol("arr_s", array_type));
 
       WHEN("&arr_s[1].comp")
       {
@@ -424,7 +413,8 @@ SCENARIO("Constructing write stacks",
       GIVEN("A symbol int x")
       {
         typet basic_symbol_type=signedbv_typet(32);
-        symbol_table.add(create_basic_symbol("x", basic_symbol_type));
+        symbol_table.add(
+          symbol_table_utilt::create_basic_symbol("x", basic_symbol_type));
 
         WHEN("Constructing from &arr_s[x].comp (x top)")
         {
@@ -459,11 +449,13 @@ SCENARIO("Constructing write stacks",
 
     // int x;
     typet basic_symbol_type=signedbv_typet(32);
-    symbol_table.add(create_basic_symbol("x", basic_symbol_type));
+    symbol_table.add(
+      symbol_table_utilt::create_basic_symbol("x", basic_symbol_type));
 
     // int * p
     typet pointer_type=pointer_typet(basic_symbol_type);
-    symbolt pointer_symbol=create_basic_symbol("p", pointer_type);
+    symbolt pointer_symbol=
+      symbol_table_utilt::create_basic_symbol("p", pointer_type);
     symbol_table.add(pointer_symbol);
 
     // Create an abstract_object_pointer representing 2
