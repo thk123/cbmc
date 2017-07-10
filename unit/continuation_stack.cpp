@@ -1,10 +1,14 @@
 /*******************************************************************\
 
- Module: MODULE NAME
+ Module: Write Stack Unit Tests
 
  Author: DiffBlue Limited. All rights reserved.
 
 \*******************************************************************/
+
+/// \file
+/// Unit tests for construction of write stack
+
 #include "catch.hpp"
 
 #include <stack>
