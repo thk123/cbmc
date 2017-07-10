@@ -5,12 +5,12 @@
  Author: DiffBlue Limited. All rights reserved.
 
 \*******************************************************************/
+#include "write_stack.h"
+
 #include <unordered_set>
 
 #include <util/std_expr.h>
 #include <util/simplify_expr.h>
-
-#include "continuation_stack.h"
 
 /// Build a junk stack
 write_stackt::write_stackt():
@@ -92,7 +92,8 @@ void write_stackt::construct_stack_to_pointer(
 
     abstract_object_pointert offset_value=environment.eval(offset, ns);
 
-    add_to_stack(std::make_shared<offset_entryt>(offset_value), environment, ns);
+    add_to_stack(
+      std::make_shared<offset_entryt>(offset_value), environment, ns);
 
     // Build the pointer part
     construct_stack_to_pointer(base, environment, ns);
@@ -210,7 +211,8 @@ void write_stackt::add_to_stack(
   const abstract_environmentt environment,
   const namespacet &ns)
 {
-  if(stack.empty() || !stack.front()->try_squash_in(entry_pointer, environment, ns))
+  if(stack.empty() ||
+    !stack.front()->try_squash_in(entry_pointer, environment, ns))
   {
     stack.insert(stack.begin(), entry_pointer);
   }
@@ -230,7 +232,7 @@ write_stackt::integral_resultt
   exprt &out_integral_expr)
 {
   PRECONDITION(expr.operands().size()==2);
-  const static std::unordered_set<irep_idt, irep_id_hash> integral_types=
+  static const std::unordered_set<irep_idt, irep_id_hash> integral_types=
     { ID_signedbv, ID_unsignedbv, ID_integer };
   if(integral_types.find(expr.op0().type().id())!=integral_types.cend())
   {

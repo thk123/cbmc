@@ -20,7 +20,7 @@
 #include <util/ui_message.h>
 #include <ansi-c/ansi_c_language.h>
 #include <ansi-c/expr2c.h>
-#include <analyses/variable-sensitivity/continuation_stack_entry.h>
+#include <analyses/variable-sensitivity/write_stack_entry.h>
 #include <analyses/variable-sensitivity/abstract_enviroment.h>
 #include <analyses/variable-sensitivity/variable_sensitivity_object_factory.h>
 

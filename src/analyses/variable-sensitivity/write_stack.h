@@ -8,7 +8,7 @@
 #ifndef CONTINUATION_STACK_H
 #define CONTINUATION_STACK_H
 
-#include <analyses/variable-sensitivity/continuation_stack_entry.h>
+#include <analyses/variable-sensitivity/write_stack_entry.h>
 
 // So each pointer has effectively an offset stack stored as a continuation stack
 //  Conceptually: writing to the pointer involves continuing writing to some other

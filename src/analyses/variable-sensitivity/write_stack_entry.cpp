@@ -3,7 +3,7 @@
 
 #include <util/std_expr.h>
 
-#include "continuation_stack_entry.h"
+#include "write_stack_entry.h"
 
 bool continuation_stack_entryt::try_squash_in(
   std::shared_ptr<const continuation_stack_entryt> new_entry,
