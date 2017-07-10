@@ -12,14 +12,19 @@
 
 #include "continuation_stack.h"
 
-continuation_stackt::continuation_stackt():
+/// Build a junk stack
+write_stackt::write_stackt():
   stack(),
   junk_stack(true)
 {}
 
-continuation_stackt::continuation_stackt(
+/// Construct a write stack from an expression
+/// \param expr: The expression to represent
+/// \param environment: The environment to evaluate any expressions in
+/// \param ns: The global namespace
+write_stackt::write_stackt(
   const exprt &expr,
-  const abstract_environmentt &enviroment,
+  const abstract_environmentt &environment,
   const namespacet &ns)
 {
   junk_stack=false;
@@ -31,17 +36,21 @@ continuation_stackt::continuation_stackt(
     construct_stack_to_pointer(
       address_of_exprt(
         index_exprt(
-          expr, constant_exprt::integer_constant(0))), enviroment, ns);
+          expr, constant_exprt::integer_constant(0))), environment, ns);
   }
   else
   {
-    construct_stack_to_pointer(expr, enviroment, ns);
+    construct_stack_to_pointer(expr, environment, ns);
   }
 }
 
-void continuation_stackt::construct_stack_to_pointer(
+/// Add to the stack the elements to get to a pointer
+/// \param expr: An expression of type pointer to construct the stack to
+/// \param environment: The environment to evaluate any expressions in
+/// \param ns: The global namespace
+void write_stackt::construct_stack_to_pointer(
   const exprt &expr,
-  const abstract_environmentt &enviroment,
+  const abstract_environmentt &environment,
   const namespacet &ns)
 {
   PRECONDITION(expr.type().id()==ID_pointer);
@@ -58,7 +67,7 @@ void continuation_stackt::construct_stack_to_pointer(
   {
     // resovle reminder, can either be a symbol, member or index of
     // otherwise unsupported
-    construct_stack_to_lvalue(expr.op0(), enviroment, ns);
+    construct_stack_to_lvalue(expr.op0(), environment, ns);
   }
   else if(expr.id()==ID_plus || expr.id()==ID_minus)
   {
@@ -81,12 +90,12 @@ void continuation_stackt::construct_stack_to_pointer(
       offset.negate();
     }
 
-    abstract_object_pointert offset_value=enviroment.eval(offset, ns);
+    abstract_object_pointert offset_value=environment.eval(offset, ns);
 
-    add_to_stack(std::make_shared<offset_entryt>(offset_value), enviroment, ns);
+    add_to_stack(std::make_shared<offset_entryt>(offset_value), environment, ns);
 
     // Build the pointer part
-    construct_stack_to_pointer(base, enviroment, ns);
+    construct_stack_to_pointer(base, environment, ns);
 
     if(!junk_stack)
     {
@@ -107,25 +116,30 @@ void continuation_stackt::construct_stack_to_pointer(
   }
 }
 
-void continuation_stackt::construct_stack_to_lvalue(
+/// Construct a stack up to a specific l-value (i.e. symbol or position in an
+/// array or struct)
+/// \param expr: The expression representing a l-value
+/// \param environment: The environment to evaluate any expressions in
+/// \param ns: The global namespace
+void write_stackt::construct_stack_to_lvalue(
   const exprt &expr,
-  const abstract_environmentt &enviroment,
+  const abstract_environmentt &environment,
   const namespacet &ns)
 {
   if(!junk_stack)
   {
     if(expr.id()==ID_member)
     {
-      add_to_stack(std::make_shared<simple_entryt>(expr), enviroment, ns);
-      construct_stack_to_lvalue(expr.op0(), enviroment, ns);
+      add_to_stack(std::make_shared<simple_entryt>(expr), environment, ns);
+      construct_stack_to_lvalue(expr.op0(), environment, ns);
     }
     else if(expr.id()==ID_symbol)
     {
-      add_to_stack(std::make_shared<simple_entryt>(expr), enviroment, ns);
+      add_to_stack(std::make_shared<simple_entryt>(expr), environment, ns);
     }
     else if(expr.id()==ID_index)
     {
-      construct_stack_to_array_index(to_index_expr(expr), enviroment, ns);
+      construct_stack_to_array_index(to_index_expr(expr), environment, ns);
     }
     else
     {
@@ -134,19 +148,26 @@ void continuation_stackt::construct_stack_to_lvalue(
   }
 }
 
-void continuation_stackt::construct_stack_to_array_index(
+/// Construct a stack for an array position l-value.
+/// \param index_expr: The index expression to construct to.
+/// \param environment: The environment to evaluate any expressions in
+/// \param ns: The global namespace
+void write_stackt::construct_stack_to_array_index(
   const index_exprt &index_expr,
-  const abstract_environmentt &enviroment,
+  const abstract_environmentt &environment,
   const namespacet &ns)
 {
   abstract_object_pointert offset_value=
-    enviroment.eval(index_expr.index(), ns);
+    environment.eval(index_expr.index(), ns);
 
-  add_to_stack(std::make_shared<offset_entryt>(offset_value), enviroment, ns);
-  construct_stack_to_lvalue(index_expr.array(), enviroment, ns);
+  add_to_stack(std::make_shared<offset_entryt>(offset_value), environment, ns);
+  construct_stack_to_lvalue(index_expr.array(), environment, ns);
 }
 
-exprt continuation_stackt::to_expression() const
+/// Convert the stack to an expression that can be used to write to.
+/// \return The expression representing the stack, with nil_exprt expressions
+///   for top elements.
+exprt write_stackt::to_expression() const
 {
   exprt access_expr=nil_exprt();
   for(const stack_entry_pointert &entry : stack)
@@ -171,26 +192,39 @@ exprt continuation_stackt::to_expression() const
   return top_expr;
 }
 
-bool continuation_stackt::is_top_value() const
+/// Is the stack representing an unknown value and hence can't be written to
+/// or read from.
+/// \return True if the stack is top.
+bool write_stackt::is_top_value() const
 {
   return junk_stack;
 }
 
-
-
-void continuation_stackt::add_to_stack(
-  continuation_stackt::stack_entry_pointert entry_pointer,
-  const abstract_environmentt enviroment,
+/// Add an element to the top of the stack. This will squash in with the top
+/// element if possible.
+/// \param entry_pointer: The new element for the stack.
+/// \param environment: The environment to evaluate any expressions in
+/// \param ns: The global namespace
+void write_stackt::add_to_stack(
+  write_stackt::stack_entry_pointert entry_pointer,
+  const abstract_environmentt environment,
   const namespacet &ns)
 {
-  if(stack.empty() || !stack.front()->try_squash_in(entry_pointer, enviroment, ns))
+  if(stack.empty() || !stack.front()->try_squash_in(entry_pointer, environment, ns))
   {
     stack.insert(stack.begin(), entry_pointer);
   }
 }
 
-continuation_stackt::integral_resultt
-  continuation_stackt::get_which_side_integral(
+/// Utility function to find out which side of a binary operation has an
+/// integral type, if any.
+/// \param expr: The (binary) expression to evaluate.
+/// \param [out] out_base_expr: The sub-expression which is not integral typed
+/// \param [out] out_integral_expr: The subexpression which is integraled typed.
+/// \return: An enum specifying whether the integral type is the LHS (op0),
+///   RHS (op1) or neither.
+write_stackt::integral_resultt
+  write_stackt::get_which_side_integral(
   const exprt &expr,
   exprt &out_base_expr,
   exprt &out_integral_expr)

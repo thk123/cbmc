@@ -58,7 +58,7 @@ private:
   abstract_object_pointert merge_constant_pointers(
     const constant_pointer_abstract_pointert other) const;
 
-  continuation_stackt value_stack;
+  write_stackt value_stack;
 };
 
 #endif // CPROVER_ANALYSES_VARIABLE_SENSITIVITY_CONSTANT_POINTER_ABSTRACT_OBJECT_H // NOLINT(*)

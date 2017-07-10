@@ -23,17 +23,16 @@
 
 // Write dereference works in the same way, with the pointer adding on to the continuation stack
 // At the top?
-class continuation_stackt
+class write_stackt
 {
 public:
   typedef std::shared_ptr<continuation_stack_entryt> stack_entry_pointert;
   typedef std::vector<stack_entry_pointert> continuation_stack_storet;
 
-  continuation_stackt();
+  write_stackt();
 
-  continuation_stackt(
-    const exprt & expr,
-    const abstract_environmentt &enviroment,
+  write_stackt(const exprt & expr,
+    const abstract_environmentt &environment,
     const namespacet &ns);
 
   exprt to_expression() const;
@@ -42,24 +41,24 @@ public:
   void append_stack(const continuation_stack_storet &stack_to_append);
 
 private:
-  void construct_root(
+  void construct_stack_to_pointer(
     const exprt &expr,
-    const abstract_environmentt &enviroment,
+    const abstract_environmentt &environment,
     const namespacet &ns);
 
-  void construct_lvalue(
+  void construct_stack_to_lvalue(
     const exprt &expr,
-    const abstract_environmentt &enviroment,
+    const abstract_environmentt &environment,
     const namespacet &ns);
 
-  void construct_offset_pointer(
+  void construct_stack_to_array_index(
     const index_exprt &expr,
-    const abstract_environmentt &enviroment,
+    const abstract_environmentt &environment,
     const namespacet &ns);
 
   void add_to_stack(
     stack_entry_pointert entry_pointer,
-    const abstract_environmentt enviroment,
+    const abstract_environmentt environment,
     const namespacet &ns);
 
   enum class integral_resultt { LHS_INTEGRAL, RHS_INTEGRAL, NEITHER_INTEGRAL };
