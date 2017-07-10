@@ -28,29 +28,8 @@
 #include <analyses/variable-sensitivity/variable_sensitivity_object_factory.h>
 
 #include <src/expr/require_expr.h>
+#include <src/ansi-c/c_to_expr.h>
 
-
-class fudged_to_exprt
-{
-public:
-  fudged_to_exprt():
-    message_handler(
-      std::unique_ptr<message_handlert>(new ui_message_handlert()))
-  {
-    language.set_message_handler(*message_handler);
-  }
-
-  exprt operator()(const std::string &input_string, const namespacet &ns)
-  {
-    exprt expr;
-    bool result=language.to_expr(input_string, "",  expr, ns);
-    assert(!result);
-    return expr;
-  }
-private:
-  std::unique_ptr<message_handlert> message_handler;
-  ansi_c_languaget language;
-};
 
 
 /// Create a lvalue symbol of the specified type.
@@ -84,7 +63,7 @@ SCENARIO("Constructing write stacks",
   abstract_environmentt environment;
   environment.make_top();
 
-  fudged_to_exprt to_expr;
+  c_to_exprt to_expr;
 
   GIVEN("A int x")
   {
