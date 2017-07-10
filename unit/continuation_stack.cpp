@@ -514,4 +514,76 @@ SCENARIO("Constructing write stacks",
       }
     }
   }
+  GIVEN("A pointer to an integer int * p = &x")
+  {
+    // in a top environment - to construct from say (p + 1) we should always
+    // return top. If the enviroment was not top, we could do better if p has an
+    // offset at the top of its write_stack. Of course if it doesn't
+
+    // int x;
+    typet basic_symbol_type=signedbv_typet(32);
+    symbol_table.add(create_basic_symbol("x", basic_symbol_type));
+
+    // int * p
+    typet pointer_type=pointer_typet(basic_symbol_type);
+    symbolt pointer_symbol=create_basic_symbol("p", pointer_type);
+    symbol_table.add(pointer_symbol);
+
+    // Create an abstract_object_pointer representing 2
+    abstract_object_pointert x_value=
+      environment.abstract_object_factory(
+        pointer_type,
+        to_expr("&x", ns),
+        ns);
+    environment.assign(pointer_symbol.symbol_expr(), x_value, ns);
+
+    WHEN("Constructing the write stack from p + 1")
+    {
+      exprt in_expr=to_expr("p + 1", ns);
+      CAPTURE(expr2c(in_expr, ns));
+
+      THEN("The constructed stack should be TOP")
+      {
+        // Since we don't allow constructing a pointer to a struct yet
+        auto stack=write_stackt(in_expr, environment, ns);
+        REQUIRE(stack.is_top_value());
+      }
+    }
+    WHEN("Constructing the write stack from 1 + p")
+    {
+      exprt in_expr=to_expr("1 + p", ns);
+      CAPTURE(expr2c(in_expr, ns));
+
+      auto stack=write_stackt(in_expr, environment, ns);
+
+      THEN("Get a top write stack")
+      {
+        REQUIRE(stack.is_top_value());
+      }
+    }
+    WHEN("Constructing the write stack from p - 1")
+    {
+      exprt in_expr=to_expr("p - 1", ns);
+      CAPTURE(expr2c(in_expr, ns));
+
+      auto stack=write_stackt(in_expr, environment, ns);
+
+      THEN("Get a top write stack")
+      {
+        REQUIRE(stack.is_top_value());
+      }
+    }
+    WHEN("Constructing the write stack from &p[1]")
+    {
+      exprt in_expr=to_expr("&p[1]", ns);
+      CAPTURE(expr2c(in_expr, ns));
+
+      auto stack=write_stackt(in_expr, environment, ns);
+
+      THEN("Get a top write stack")
+      {
+        REQUIRE(stack.is_top_value());
+      }
+    }
+  }
 }
