@@ -3,6 +3,7 @@
 # Source files for test utilities
 SRC = src/expr/require_expr.cpp \
       src/ansi-c/c_to_expr.cpp \
+      src/symbol-table/symbol_table_util.cpp \
       # Empty last line
 
 # Test source files
@@ -14,6 +15,7 @@ SRC += unit_tests.cpp \
        analyses/variable-sensitivity/full_struct_abstract_object/merge.cpp \
        continuation_stack.cpp \
        # Empty last line
+
 INCLUDES= -I ../src/ -I.
 
 include ../src/config.inc
