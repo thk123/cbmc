@@ -43,16 +43,32 @@ public:
 
 private:
   void construct_root(
-    const exprt & expr,
+    const exprt &expr,
     const abstract_environmentt &enviroment,
     const namespacet &ns);
 
+  void construct_lvalue(
+    const exprt &expr,
+    const abstract_environmentt &enviroment,
+    const namespacet &ns);
 
+  void construct_offset_pointer(
+    const index_exprt &expr,
+    const abstract_environmentt &enviroment,
+    const namespacet &ns);
 
   void add_to_stack(
     stack_entry_pointert entry_pointer,
     const abstract_environmentt enviroment,
     const namespacet &ns);
+
+  enum class integral_resultt { LHS_INTEGRAL, RHS_INTEGRAL, NEITHER_INTEGRAL };
+
+  static integral_resultt get_which_side_integral(
+    const exprt &expr,
+    exprt &out_base_expr,
+    exprt &out_integral_expr);
+
 
   continuation_stack_storet stack;
   bool junk_stack;
