@@ -1,14 +1,18 @@
 .PHONY: all cprover.dir test
 
-SRC = unit_tests.cpp \
-      catch_example.cpp \
-      analyses/variable-sensitivity/abstract_object/merge.cpp \
-      analyses/variable-sensitivity/constant_abstract_value/merge.cpp \
-      analyses/variable-sensitivity/constant_array_abstract_object/merge.cpp \
-      analyses/variable-sensitivity/full_struct_abstract_object/merge.cpp \
-      continuation_stack.cpp \
+# Source files for test utilities
+SRC = src/expr/require_expr.cpp \
       # Empty last line
 
+# Test source files
+SRC += unit_tests.cpp \
+       catch_example.cpp \
+       analyses/variable-sensitivity/abstract_object/merge.cpp \
+       analyses/variable-sensitivity/constant_abstract_value/merge.cpp \
+       analyses/variable-sensitivity/constant_array_abstract_object/merge.cpp \
+       analyses/variable-sensitivity/full_struct_abstract_object/merge.cpp \
+       continuation_stack.cpp \
+       # Empty last line
 INCLUDES= -I ../src/ -I.
 
 include ../src/config.inc
