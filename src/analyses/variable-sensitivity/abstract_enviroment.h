@@ -17,6 +17,7 @@
 #include <util/std_expr.h>
 #include <util/message.h>
 #include <analyses/variable-sensitivity/abstract_object.h>
+#include <goto-programs/goto_program.h>
 
 class abstract_environmentt
 {
@@ -27,7 +28,8 @@ public:
   virtual bool assign(
     const exprt &expr,
     const abstract_object_pointert value,
-    const namespacet &ns);
+    const namespacet &ns,
+    const goto_programt::instructiont *loc = nullptr);
   virtual bool assume(const exprt &expr, const namespacet &ns);
 
   virtual abstract_object_pointert write(

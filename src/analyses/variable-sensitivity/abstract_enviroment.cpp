@@ -172,9 +172,10 @@ Function: abstract_environmentt::assign
  update one of the multiple objects) is also why a merge_write flag is
  needed.
 \*******************************************************************/
-
+#include <iostream>
 bool abstract_environmentt::assign(
-  const exprt &expr, const abstract_object_pointert value, const namespacet &ns)
+  const exprt &expr, const abstract_object_pointert value, const namespacet &ns,
+  const goto_programt::instructiont *loc)
 {
   assert(value);
 
@@ -241,6 +242,11 @@ bool abstract_environmentt::assign(
     }
     // We can assign the AO directly to the symbol
     final_value=value;
+  }
+
+  if(loc != nullptr)
+  {
+    final_value=final_value->update_write_location(loc);
   }
 
   const typet &lhs_type=ns.follow(lhs_value->type());
@@ -710,6 +716,12 @@ void abstract_environmentt::output(
     out << entry.first.get_identifier()
         << " (" << ") -> ";
     entry.second->output(out, ai, ns);
+    out << " @ [";
+    for(auto loc: entry.second->written)
+    {
+      out << loc->location_number << ", ";
+    }
+    out << "]";
     out << "\n";
   }
   out << "}\n";

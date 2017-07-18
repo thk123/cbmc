@@ -72,7 +72,7 @@ void variable_sensitivity_domaint::transform(
 
       // TODO : check return values
       abstract_object_pointert r = abstract_state.eval(inst.rhs(), ns);
-      abstract_state.assign(inst.lhs(), r, ns);
+      abstract_state.assign(inst.lhs(), r, ns, &instruction);
     }
     break;
 
