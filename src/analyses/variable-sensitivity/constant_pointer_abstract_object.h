@@ -45,7 +45,8 @@ public:
     const namespacet &ns,
     const std::stack<exprt> stack,
     const abstract_object_pointert value,
-    bool merging_write) const override;
+    bool merging_write,
+    const goto_programt::const_targett &location) const override;
 
 protected:
   virtual abstract_object_pointert merge(

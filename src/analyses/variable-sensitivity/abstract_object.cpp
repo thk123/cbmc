@@ -142,8 +142,6 @@ abstract_object_pointert abstract_objectt::abstract_object_merge(
   internal_abstract_object_pointert merged=mutable_clone();
   merged->top=true;
   merged->bottom=false;
-  merged->written=this->written;
-  merged->written.insert(merged->written.end(), other->written.begin(), other->written.end());
   return merged;
 }
 

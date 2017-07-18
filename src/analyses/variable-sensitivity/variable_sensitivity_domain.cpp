@@ -62,7 +62,7 @@ void variable_sensitivity_domaint::transform(
       abstract_state.abstract_object_factory(
         to_code_dead(instruction.code).symbol().type(), ns, true);
     abstract_state.assign(
-      to_code_dead(instruction.code).symbol(), top_object, ns);
+      to_code_dead(instruction.code).symbol(), top_object, ns, from);
     }
     break;
 
@@ -72,7 +72,7 @@ void variable_sensitivity_domaint::transform(
 
       // TODO : check return values
       abstract_object_pointert r = abstract_state.eval(inst.rhs(), ns);
-      abstract_state.assign(inst.lhs(), r, ns, &instruction);
+      abstract_state.assign(inst.lhs(), r, ns, from);
     }
     break;
 
@@ -128,7 +128,8 @@ void variable_sensitivity_domaint::transform(
       abstract_state.assign(
         symbol_exprt(param.get_identifier(), param.type()),
         abstract_state.abstract_object_factory(param.type(), ns, true, false),
-        ns);
+        ns,
+        from);
     }
     break;
   }
@@ -419,7 +420,9 @@ void variable_sensitivity_domaint::transform_function_call(
               ns,
               std::stack<exprt>(),
               abstract_state.abstract_object_factory(
-                called_arg.type().subtype(), ns, true), false);
+                called_arg.type().subtype(), ns, true),
+              false,
+              from);
           }
         }
 
@@ -431,7 +434,8 @@ void variable_sensitivity_domaint::transform_function_call(
             abstract_state.assign(
               symbol_exprt(symbol.first, symbol.second.type),
               abstract_state.abstract_object_factory(symbol.second.type, ns, true),
-              ns);
+              ns,
+              from);
           }
         }
       }
@@ -463,7 +467,7 @@ void variable_sensitivity_domaint::transform_function_call(
         // parameter of the function
         const symbol_exprt parameter_expr(
           parameter_it->get_identifier(), called_arg.type());
-        abstract_state.assign(parameter_expr, param_val, ns);
+        abstract_state.assign(parameter_expr, param_val, ns, from);
 
         ++parameter_it;
       }

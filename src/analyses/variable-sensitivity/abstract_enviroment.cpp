@@ -175,7 +175,7 @@ Function: abstract_environmentt::assign
 #include <iostream>
 bool abstract_environmentt::assign(
   const exprt &expr, const abstract_object_pointert value, const namespacet &ns,
-  const goto_programt::instructiont *loc)
+  const goto_programt::const_targett &location)
 {
   assert(value);
 
@@ -229,7 +229,7 @@ bool abstract_environmentt::assign(
   if(!stactions.empty())
   {
     // The symbol is not in the map - it is therefore top
-    final_value=write(lhs_value, value, stactions, ns, false);
+    final_value=write(lhs_value, value, stactions, ns, false, location);
   }
   else
   {
@@ -244,10 +244,7 @@ bool abstract_environmentt::assign(
     final_value=value;
   }
 
-  if(loc != nullptr)
-  {
-    final_value=final_value->update_write_location(loc);
-  }
+  final_value=final_value->update_write_location(location);
 
   const typet &lhs_type=ns.follow(lhs_value->type());
   const typet &rhs_type=ns.follow(final_value->type());
@@ -300,7 +297,8 @@ abstract_object_pointert abstract_environmentt::write(
   abstract_object_pointert rhs,
   std::stack<exprt> remaining_stack,
   const namespacet &ns,
-  bool merge_write)
+  bool merge_write,
+  const goto_programt::const_targett &location)
 {
   assert(!remaining_stack.empty());
   const exprt & next_expr=remaining_stack.top();
@@ -321,7 +319,7 @@ abstract_object_pointert abstract_environmentt::write(
 
     sharing_ptrt<array_abstract_objectt> modified_array=
       array_abstract_object->write_index(
-        *this, ns, remaining_stack, to_index_expr(next_expr), rhs, merge_write);
+        *this, ns, remaining_stack, to_index_expr(next_expr), rhs, merge_write, location);
 
     return modified_array;
   }
@@ -351,7 +349,7 @@ abstract_object_pointert abstract_environmentt::write(
       const member_exprt next_member_expr(to_member_expr(next_expr));
       sharing_ptrt<struct_abstract_objectt> modified_struct=
         struct_abstract_object->write_component(
-          *this, ns, remaining_stack, next_member_expr, rhs, merge_write);
+          *this, ns, remaining_stack, next_member_expr, rhs, merge_write, location);
 
       return modified_struct;
     }
@@ -363,7 +361,7 @@ abstract_object_pointert abstract_environmentt::write(
 
     sharing_ptrt<pointer_abstract_objectt> modified_pointer=
       pointer_abstract_object->write_dereference(
-        *this, ns, remaining_stack, rhs, merge_write);
+        *this, ns, remaining_stack, rhs, merge_write, location);
 
     return modified_pointer;
   }

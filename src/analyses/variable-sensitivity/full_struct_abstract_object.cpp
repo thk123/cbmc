@@ -168,7 +168,8 @@ sharing_ptrt<struct_abstract_objectt>
     const std::stack<exprt> &stack,
     const member_exprt &member_expr,
     const abstract_object_pointert value,
-    bool merging_write) const
+    bool merging_write,
+    const goto_programt::const_targett &location) const
 {
 #ifdef DEBUG
   std::cout << "Writing component " << member_expr.get_component_name()
@@ -202,7 +203,7 @@ sharing_ptrt<struct_abstract_objectt>
     }
 
     copy->map[c]=
-      environment.write(starting_value, value, stack, ns, merging_write);
+      environment.write(starting_value, value, stack, ns, merging_write, location);
     copy->top=false;
     assert(copy->verify());
     return copy;

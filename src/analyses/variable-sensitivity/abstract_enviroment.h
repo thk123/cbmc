@@ -29,7 +29,7 @@ public:
     const exprt &expr,
     const abstract_object_pointert value,
     const namespacet &ns,
-    const goto_programt::instructiont *loc = nullptr);
+    const goto_programt::const_targett &location);
   virtual bool assume(const exprt &expr, const namespacet &ns);
 
   virtual abstract_object_pointert write(
@@ -37,7 +37,8 @@ public:
     abstract_object_pointert rhs,
     std::stack<exprt> remaining_stack,
     const namespacet &ns,
-    bool merge_write);
+    bool merge_write,
+    const goto_programt::const_targett &location);
 
   virtual abstract_object_pointert abstract_object_factory(
     const typet &type,

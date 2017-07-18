@@ -342,12 +342,13 @@ sharing_ptrt<pointer_abstract_objectt>
     const namespacet &ns,
     const std::stack<exprt> stack,
     const abstract_object_pointert new_value,
-    bool merging_write) const
+    bool merging_write,
+    const goto_programt::const_targett &location) const
 {
   if(is_top() || is_bottom())
   {
     return pointer_abstract_objectt::write_dereference(
-      environment, ns, stack, new_value, merging_write);
+      environment, ns, stack, new_value, merging_write, location);
   }
   else
   {
@@ -355,7 +356,7 @@ sharing_ptrt<pointer_abstract_objectt>
     if(value.id()!=ID_address_of)
     {
       return pointer_abstract_objectt::write_dereference(
-        environment, ns, stack, new_value, merging_write);
+        environment, ns, stack, new_value, merging_write, location);
     }
 
     const address_of_exprt &address_expr=to_address_of_expr(value);
@@ -377,18 +378,18 @@ sharing_ptrt<pointer_abstract_objectt>
         bool modifications;
         abstract_object_pointert merged_value=
           abstract_objectt::merge(pointed_value, new_value, modifications);
-        environment.assign(address_expr.object(), merged_value, ns);
+        environment.assign(address_expr.object(), merged_value, ns, location);
       }
       else
       {
-        environment.assign(address_expr.object(), new_value, ns);
+        environment.assign(address_expr.object(), new_value, ns, location);
       }
     }
     else
     {
       abstract_object_pointert pointed_value=
         environment.eval(address_expr.object(), ns);
-      environment.write(pointed_value, new_value, stack, ns, merging_write);
+      environment.write(pointed_value, new_value, stack, ns, merging_write, location);
 
       // but the pointer itself does not change!
     }

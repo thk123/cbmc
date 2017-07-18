@@ -279,12 +279,13 @@ sharing_ptrt<array_abstract_objectt>
     const std::stack<exprt> stack,
     const index_exprt &index_expr,
     const abstract_object_pointert value,
-    bool merging_write) const
+    bool merging_write,
+    const goto_programt::const_targett &location) const
 {
   if(is_bottom())
   {
     return array_abstract_objectt::write_index(
-      environment, ns, stack, index_expr, value, merging_write);
+      environment, ns, stack, index_expr, value, merging_write, location);
   }
   else
   {
@@ -310,7 +311,7 @@ sharing_ptrt<array_abstract_objectt>
         // try to write to all
         // TODO(tkiley): Merge with each entry
         return array_abstract_objectt::write_index(
-          environment, ns, stack, index_expr, value, merging_write);
+          environment, ns, stack, index_expr, value, merging_write, location);
       }
     }
     else
@@ -338,7 +339,7 @@ sharing_ptrt<array_abstract_objectt>
           copy->top=false;
         }
         copy->map[index_value]=environment.write(
-          array_entry, value, stack, ns, merging_write);
+          array_entry, value, stack, ns, merging_write, location);
 
         return copy;
       }
@@ -349,7 +350,7 @@ sharing_ptrt<array_abstract_objectt>
           // Merging write since we don't know which index we are writing to
           copy->map[array_entry.first]=
             environment.write(
-              array_entry.second, value, stack, ns, true);
+              array_entry.second, value, stack, ns, true, location);
           if(is_top())
           {
             copy->top=false;

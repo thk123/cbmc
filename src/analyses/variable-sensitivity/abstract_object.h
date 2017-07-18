@@ -108,20 +108,15 @@ public:
     abstract_object_pointert op2,
     bool &out_modifications);
 
-  abstract_object_pointert update_write_location(const goto_programt::instructiont *loc) const
+  abstract_object_pointert update_write_location(const goto_programt::const_targett loc) const
   {
-    if(loc == nullptr)
-    {
-      return shared_from_this();
-    }
-
     internal_abstract_object_pointert b = mutable_clone();
     b->written.clear();
-    b->written.push_back(loc);
+    b->written.insert(loc);
     return b;
   }
 
-  std::vector<const goto_programt::instructiont *> written;
+  std::set<const goto_programt::const_targett> written;
 
 private:
   // To enforce copy-on-write these are private and have read-only accessors

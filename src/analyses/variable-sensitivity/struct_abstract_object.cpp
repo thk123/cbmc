@@ -133,7 +133,8 @@ sharing_ptrt<struct_abstract_objectt> struct_abstract_objectt::write_component(
   const std::stack<exprt> &stack,
   const member_exprt &member_expr,
   const abstract_object_pointert value,
-  bool merging_write) const
+  bool merging_write,
+  const goto_programt::const_targett &location) const
 {
   if(is_top() || is_bottom())
   {

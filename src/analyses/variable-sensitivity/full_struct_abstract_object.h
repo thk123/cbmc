@@ -44,7 +44,8 @@ public:
     const std::stack<exprt> &stack,
     const member_exprt &member_expr,
     const abstract_object_pointert value,
-    bool merging_write) const override;
+    bool merging_write,
+    const goto_programt::const_targett &location) const override;
 
   virtual void output(
     std::ostream &out,
