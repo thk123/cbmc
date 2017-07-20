@@ -110,10 +110,11 @@ public:
 
   abstract_object_pointert update_write_location(const goto_programt::const_targett loc) const
   {
-    internal_abstract_object_pointert b = mutable_clone();
-    b->written.clear();
-    b->written.insert(loc);
-    return b;
+    // This will suffice for now.  Cloning is clear unideal and should be refactored prior to merge.
+    internal_abstract_object_pointert clone = mutable_clone();
+    clone->written.clear();
+    clone->written.insert(loc);
+    return clone;
   }
 
   std::set<const goto_programt::const_targett> written;

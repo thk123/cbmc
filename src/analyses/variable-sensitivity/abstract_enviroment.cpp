@@ -244,7 +244,7 @@ bool abstract_environmentt::assign(
     final_value=value;
   }
 
-  final_value=final_value->update_write_location(location);
+//  final_value=final_value->update_write_location(location);
 
   const typet &lhs_type=ns.follow(lhs_value->type());
   const typet &rhs_type=ns.follow(final_value->type());
@@ -300,6 +300,7 @@ abstract_object_pointert abstract_environmentt::write(
   bool merge_write,
   const goto_programt::const_targett &location)
 {
+
   assert(!remaining_stack.empty());
   const exprt & next_expr=remaining_stack.top();
   remaining_stack.pop();
@@ -715,9 +716,18 @@ void abstract_environmentt::output(
         << " (" << ") -> ";
     entry.second->output(out, ai, ns);
     out << " @ [";
+    bool comma=false;
     for(auto loc: entry.second->written)
     {
-      out << loc->location_number << ", ";
+      if(!comma)
+      {
+        out << loc->location_number;
+        comma=true;
+      }
+      else
+      {
+        out << ", " << loc->location_number;
+      }
     }
     out << "]";
     out << "\n";

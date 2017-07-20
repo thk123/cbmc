@@ -176,6 +176,8 @@ sharing_ptrt<struct_abstract_objectt>
             << std::endl;
 #endif
 
+  abstract_object_pointert write_value =value->update_write_location(location);
+
   if(is_bottom())
   {
     return sharing_ptrt<full_struct_abstract_objectt>(
@@ -273,7 +275,7 @@ Function: full_struct_abstract_objectt::output
           print: { .component_name=<output of object for component_name... }
 
 \*******************************************************************/
-
+class ai_baset;
 void full_struct_abstract_objectt::output(
   std::ostream &out, const ai_baset &ai, const namespacet &ns) const
 {
@@ -286,6 +288,22 @@ void full_struct_abstract_objectt::output(
     }
     out << "." << entry.first << "=";
     entry.second->output(out, ai, ns);
+
+    out << " @ [";
+    bool comma=false;
+    for(auto loc: entry.second->written)
+    {
+      if(!comma)
+      {
+        out << loc->location_number;
+        comma=true;
+      }
+      else
+      {
+        out << ", " << loc->location_number;
+      }
+    }
+    out << "]";
   }
   out << "}";
 }

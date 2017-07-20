@@ -193,6 +193,23 @@ void constant_array_abstract_objectt::output(
     {
       out << "[" << entry.first << "] = ";
       entry.second->output(out, ai, ns);
+
+      out << " @ [";
+      bool comma=false;
+      for(auto loc: entry.second->written)
+      {
+        if(!comma)
+        {
+          out << loc->location_number;
+          comma=true;
+        }
+        else
+        {
+          out << ", " << loc->location_number;
+        }
+      }
+      out << "]";
+
       out << "\n";
     }
     out << "}";

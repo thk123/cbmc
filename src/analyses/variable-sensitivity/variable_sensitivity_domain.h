@@ -92,6 +92,13 @@ public:
     const ai_baset &ai,
     const namespacet &ns) const override;
 
+  virtual abstract_object_pointert eval(
+      const exprt &expr,
+      const namespacet &ns)
+  {
+    return abstract_state.eval(expr, ns);
+  }
+
   virtual bool merge(
     const variable_sensitivity_domaint &b,
     locationt from,
