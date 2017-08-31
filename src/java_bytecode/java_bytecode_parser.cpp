@@ -960,7 +960,7 @@ void java_bytecode_parsert::rmethod_attribute(methodt &method)
   else if(attribute_name=="Signature")
   {
     u2 signature_index=read_u2();
-    //method.hasSignature=true;
+    method.hasSignature=true;
     method.signature=id2string(pool_entry(signature_index).s);
   }
   else if(attribute_name=="RuntimeInvisibleAnnotations" ||
@@ -982,7 +982,7 @@ void java_bytecode_parsert::rfield_attribute(fieldt &field)
   if(attribute_name=="Signature")
   {
     u2 signature_index=read_u2();
-    //field.hasSignature=true;
+    field.hasSignature=true;
     field.signature=id2string(pool_entry(signature_index).s);
   }
   else if(attribute_name=="RuntimeInvisibleAnnotations" ||
@@ -1055,11 +1055,12 @@ void java_bytecode_parsert::rcode_attribute(methodt &method)
   }
   else if(attribute_name=="LocalVariableTypeTable")
   {
-    u2 local_variable_table_length=read_u2();
+    u2 local_variable_type_table_length=read_u2();
 
-    method.local_variable_table.resize(local_variable_table_length);
-
-    for(std::size_t i=0; i<local_variable_table_length; i++)
+    INVARIANT(
+      local_variable_type_table_length<=method.local_variable_table.size(),
+      "LVT must have at least as many elements as the type table.");
+    for(std::size_t i=0; i<local_variable_type_table_length; i++)
     {
       u2 start_pc=read_u2();
       u2 length=read_u2();
@@ -1067,13 +1068,24 @@ void java_bytecode_parsert::rcode_attribute(methodt &method)
       u2 signature_index=read_u2();
       u2 index=read_u2();
 
-      method.local_variable_table[i].index=index;
-      method.local_variable_table[i].name=pool_entry(name_index).s;
-      method.local_variable_table[i].signature=
-        id2string(pool_entry(signature_index).s);
-      //method.local_variable_table[i].hasSignature=true;
-      method.local_variable_table[i].start_pc=start_pc;
-      method.local_variable_table[i].length=length;
+      bool found=false;
+      for(auto &lvar : method.local_variable_table)
+      {
+        // compare to entry in LVT
+        if(lvar.index==index &&
+           lvar.name==pool_entry(name_index).s &&
+           lvar.start_pc==start_pc &&
+           lvar.length==length)
+        {
+          found=true;
+          lvar.signature=id2string(pool_entry(signature_index).s);
+          lvar.hasSignature=true;
+          break;
+        }
+      }
+      INVARIANT(
+        found,
+        "Entry in LocalVariableTypeTable must be present in LVT");
     }
   }
   else if(attribute_name=="StackMapTable")
@@ -1358,7 +1370,7 @@ void java_bytecode_parsert::rclass_attribute(classt &parsed_class)
   else if(attribute_name=="Signature")
   {
     u2 signature_index=read_u2();
-    //parsed_class.hasSignature=true;
+    parsed_class.hasSignature=true;
     parsed_class.signature=id2string(pool_entry(signature_index).s);
   }
   else if(attribute_name=="RuntimeInvisibleAnnotations" ||
