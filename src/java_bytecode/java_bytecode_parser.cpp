@@ -335,29 +335,29 @@ void java_bytecode_parsert::get_class_refs()
 
   for(const auto &f : parse_tree.parsed_class.fields)
   {
-    typet t=java_type_from_string(f.descriptor);
+    typet t;
     if(f.hasSignature)
-    {
-      typet g=java_type_from_string(f.signature);
-    }
+      t=java_type_from_string(f.signature);
+    else
+      t=java_type_from_string(f.descriptor);
     get_class_refs_rec(t);
   }
 
   for(const auto &m : parse_tree.parsed_class.methods)
   {
-    typet t=java_type_from_string(m.descriptor);
+    typet t;
     if(m.hasSignature)
-    {
-      typet g=java_type_from_string(m.signature);
-    }
+      t=java_type_from_string(m.signature);
+    else
+      t=java_type_from_string(m.descriptor);
     get_class_refs_rec(t);
     for(const auto &var : m.local_variable_table)
     {
-      typet var_type=java_type_from_string(var.descriptor);
+      typet var_type;
       if(var.hasSignature)
-      {
-        typet g=java_type_from_string(var.signature);
-      }
+        var_type=java_type_from_string(var.signature);
+      else
+        var_type=java_type_from_string(var.descriptor);
       get_class_refs_rec(var_type);
     }
   }

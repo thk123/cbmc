@@ -766,11 +766,11 @@ void java_bytecode_convert_methodt::setup_local_variables(
             << " name " << v.var.name << " v.var.descriptor '"
             << v.var.descriptor << "' holes " << v.holes.size() << eom;
 #endif
-    typet t=java_type_from_string(v.var.descriptor);
+    typet t;
     if(v.var.hasSignature)
-    {
-      typet g=java_type_from_string(v.var.signature);
-    }
+      t=java_type_from_string(v.var.signature);
+    else
+      t=java_type_from_string(v.var.descriptor);
 
     std::ostringstream id_oss;
     id_oss << method_id << "::" << v.var.start_pc << "::" << v.var.name;
