@@ -10,20 +10,10 @@ Author: Daniel Kroening, kroening@kroening.com
 #ifndef CPROVER_JAVA_BYTECODE_JAVA_TYPES_H
 #define CPROVER_JAVA_BYTECODE_JAVA_TYPES_H
 
+#include <util/invariant.h>
 #include <util/type.h>
 #include <util/std_types.h>
 
-class java_generic_typet:public reference_typet
-{
-public:
-  java_generic_typet(const typet &_bound) :
-    reference_typet(_bound, 32)
-  {
-    set(ID_java_generic_type, true);
-  }
-
-  java_generic_typet() {};
-};
 
 class java_class_typet:public class_typet
 {
@@ -87,5 +77,115 @@ exprt java_bytecode_promotion(const exprt &);
 bool is_java_array_tag(const irep_idt& tag);
 
 bool is_valid_java_array(const struct_typet &type);
+
+
+/// class to hold a Java generic type
+/// upper bound can specify type requirements
+class java_generic_typet:public reference_typet
+{
+public:
+  typet bound;
+
+  void set_bound(const typet &_bound)
+  {
+    bound=_bound;
+  }
+  java_generic_typet() : reference_typet()
+  {
+    set(ID_java_generic_type, true);
+    // set standard bound
+    set_bound(java_type_from_string("Ljava/lang/Object;"));
+  }
+};
+
+inline bool is_java_generic_type(const typet &type)
+{
+  return type.get_bool(ID_java_generic_type);
+}
+
+inline const java_generic_typet &to_java_generic_type(const typet &type)
+{
+  PRECONDITION(
+    type.id()==ID_pointer &&
+    is_java_generic_type(type));
+  return static_cast<const java_generic_typet &>(type);
+}
+
+inline java_generic_typet &to_java_generic_type(typet &type)
+{
+  PRECONDITION(
+    type.id()==ID_pointer &&
+    is_java_generic_type(type));
+  return static_cast<java_generic_typet &>(type);
+}
+
+/// class to hold instantiated type variable
+/// bound is exact
+class java_inst_generic_typet:public java_generic_typet
+{
+public:
+  java_inst_generic_typet(const reference_typet &type)
+  {
+    set(ID_java_inst_generic_type, true);
+  }
+};
+
+inline bool is_java_inst_generic_type(const typet &type)
+{
+  return type.get_bool(ID_java_inst_generic_type);
+}
+
+inline const java_inst_generic_typet &to_java_inst_generic_type(const typet &type)
+{
+  PRECONDITION(
+    type.id()==ID_pointer &&
+    is_java_inst_generic_type(type));
+  return static_cast<const java_inst_generic_typet &>(type);
+}
+
+inline java_inst_generic_typet &to_java_inst_generic_type(typet &type)
+{
+  PRECONDITION(
+    type.id()==ID_pointer &&
+    is_java_inst_generic_type(type));
+  return static_cast<java_inst_generic_typet &>(type);
+}
+
+/// class to hold type with generic type variable
+class java_type_with_generic_typet:public reference_typet
+{
+public:
+  typedef std::vector<typet> type_parameterst;
+
+  type_parameterst type_parameters;
+  java_generic_typet generic_type;
+
+  java_type_with_generic_typet() : reference_typet()
+  {
+    set(ID_java_type_with_generic_type, true);
+  }
+};
+
+inline bool is_java_type_with_generic_type(const typet &type)
+{
+  return type.get_bool(ID_java_type_with_generic_type);
+}
+
+inline const java_type_with_generic_typet &to_java_type_with_generic_type(
+  const typet &type)
+{
+  PRECONDITION(
+    type.id()==ID_pointer &&
+    is_java_type_with_generic_type(type));
+  return static_cast<const java_type_with_generic_typet &>(type);
+}
+
+inline java_type_with_generic_typet &to_java_type_with_generic_type(typet &type)
+{
+  PRECONDITION(
+    type.id()==ID_pointer &&
+    is_java_type_with_generic_type(type));
+  return static_cast<java_type_with_generic_typet &>(type);
+}
 
 #endif // CPROVER_JAVA_BYTECODE_JAVA_TYPES_H

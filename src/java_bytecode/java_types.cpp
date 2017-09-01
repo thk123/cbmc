@@ -282,6 +282,7 @@ typet java_type_from_string(const std::string &src)
   case 'Z': return java_boolean_type();
   case 'V': return java_void_type();
   case 'J': return java_long_type();
+  case 'T': return java_generic_typet();
 
   case 'L':
     {
@@ -305,7 +306,7 @@ typet java_type_from_string(const std::string &src)
           if(generic_container_class[i]=='/')
             generic_container_class[i]='.';
 
-        java_generic_typet result;
+        java_type_with_generic_typet result;
         result.subtype()=symbol_typet("java::"+generic_container_class);
         result.subtype().set(ID_C_base_name, generic_container_class);
 
@@ -316,24 +317,55 @@ typet java_type_from_string(const std::string &src)
                   << " with container " << generic_container_class
                   << std::endl;
 #endif
-//         // currently return Object on non-instantiated generic type
-//         if(src[f_pos+1]=='T')
-//         {
-// #ifdef DEBUG
-//           std::size_t t_end_pos=src.find(';', f_pos+2);
-//           INVARIANT(
-//             t_end_pos!=std::string::npos,
-//             "non-terminated type parameter");
-//           std::cout << "INFO: found non-instantiated type parameter `"
-//                     << src.substr(f_pos+2, t_end_pos-f_pos-2)
-//                     << "` generalize to java/lang/Object"
-//                     << std::endl;
-// #endif
-//           return java_type_from_string("Ljava/lang/Object;");
-//         }
-//         else
-//           result.subtype()=
-//             java_type_from_string(std::string(src, f_pos+1, e_pos));
+
+        // parse contained types, can be either type variables, starting with T
+        // or instantiated types
+        size_t curr_start=f_pos+1;
+        size_t curr_end;
+        do
+        {
+          // find next end of type name
+          curr_end=src.find(';', curr_start);
+          INVARIANT(
+            curr_end!=std::string::npos,
+            "Type not terminated with \';\'");
+          const size_t end=curr_end-curr_start+1;
+          typet t=java_type_from_string(src.substr(curr_start, end));
+#ifdef DEBUG
+          std::cout << "INFO: getting type "
+                    << src.substr(curr_start, end) << "\n"
+                    << "INFO: type id " << id2string(t.id()) << "\n"
+                    << "curr_start " << curr_start
+                    << " curr_end " << curr_end
+                    << " e_pos " << e_pos
+                    << " src " << src
+                    << std::endl;
+#endif
+          INVARIANT(
+            t.id()==ID_pointer,
+            "Java type parameter must be pointer type");
+
+          // is an uninstantiated (pure) generic type
+          if(is_java_generic_type(t))
+            result.type_parameters.push_back(t);
+
+          // is another generic type container
+          else if(is_java_type_with_generic_type(t))
+            result.type_parameters.push_back(t);
+
+          // is a concrete type, i.e., instantiation of a generic type of the
+          // current type
+          else
+          {
+            java_inst_generic_typet inst_type(to_reference_type(t));
+            result.type_parameters.push_back(t);
+          }
+
+          curr_start=curr_end+1;
+        }
+        while(curr_start<e_pos);
+
+
         return result;
       }
       for(unsigned i=0; i<class_name.size(); i++)

@@ -55,7 +55,7 @@ public:
   {
   public:
     std::string descriptor;
-    bool hasSignature=false;
+    bool has_signature=false;
     std::string signature;
     irep_idt name;
     bool is_public, is_protected, is_private, is_static, is_final;
@@ -103,7 +103,7 @@ public:
     public:
       irep_idt name;
       std::string descriptor;
-      bool hasSignature=false;
+      bool has_signature=false;
       std::string signature;
       std::size_t index;
       std::size_t start_pc;
@@ -178,7 +178,7 @@ public:
 
     typedef std::list<irep_idt> implementst;
     implementst implements;
-    bool hasSignature=false;
+    bool has_signature=false;
     std::string signature;
     typedef std::list<fieldt> fieldst;
     typedef std::list<methodt> methodst;

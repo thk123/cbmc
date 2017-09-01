@@ -821,6 +821,8 @@ IREP_ID_ONE(switch_case_number)
 IREP_ID_ONE(java_array_access)
 IREP_ID_ONE(java_member_access)
 IREP_ID_ONE(java_generic_type)
+IREP_ID_ONE(java_inst_generic_type)
+IREP_ID_ONE(java_type_with_generic_type)
 
 #undef IREP_ID_ONE
 #undef IREP_ID_TWO

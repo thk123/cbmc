@@ -336,8 +336,10 @@ void java_bytecode_parsert::get_class_refs()
   for(const auto &f : parse_tree.parsed_class.fields)
   {
     typet t;
-    if(f.hasSignature)
+    if(f.has_signature)
+    {
       t=java_type_from_string(f.signature);
+    }
     else
       t=java_type_from_string(f.descriptor);
     get_class_refs_rec(t);
@@ -346,7 +348,7 @@ void java_bytecode_parsert::get_class_refs()
   for(const auto &m : parse_tree.parsed_class.methods)
   {
     typet t;
-    if(m.hasSignature)
+    if(m.has_signature)
       t=java_type_from_string(m.signature);
     else
       t=java_type_from_string(m.descriptor);
@@ -354,7 +356,7 @@ void java_bytecode_parsert::get_class_refs()
     for(const auto &var : m.local_variable_table)
     {
       typet var_type;
-      if(var.hasSignature)
+      if(var.has_signature)
         var_type=java_type_from_string(var.signature);
       else
         var_type=java_type_from_string(var.descriptor);
@@ -960,7 +962,7 @@ void java_bytecode_parsert::rmethod_attribute(methodt &method)
   else if(attribute_name=="Signature")
   {
     u2 signature_index=read_u2();
-    method.hasSignature=true;
+    method.has_signature=true;
     method.signature=id2string(pool_entry(signature_index).s);
   }
   else if(attribute_name=="RuntimeInvisibleAnnotations" ||
@@ -982,7 +984,7 @@ void java_bytecode_parsert::rfield_attribute(fieldt &field)
   if(attribute_name=="Signature")
   {
     u2 signature_index=read_u2();
-    field.hasSignature=true;
+    field.has_signature=true;
     field.signature=id2string(pool_entry(signature_index).s);
   }
   else if(attribute_name=="RuntimeInvisibleAnnotations" ||
@@ -1079,7 +1081,7 @@ void java_bytecode_parsert::rcode_attribute(methodt &method)
         {
           found=true;
           lvar.signature=id2string(pool_entry(signature_index).s);
-          lvar.hasSignature=true;
+          lvar.has_signature=true;
           break;
         }
       }
@@ -1370,7 +1372,7 @@ void java_bytecode_parsert::rclass_attribute(classt &parsed_class)
   else if(attribute_name=="Signature")
   {
     u2 signature_index=read_u2();
-    parsed_class.hasSignature=true;
+    parsed_class.has_signature=true;
     parsed_class.signature=id2string(pool_entry(signature_index).s);
   }
   else if(attribute_name=="RuntimeInvisibleAnnotations" ||

@@ -767,7 +767,7 @@ void java_bytecode_convert_methodt::setup_local_variables(
             << v.var.descriptor << "' holes " << v.holes.size() << eom;
 #endif
     typet t;
-    if(v.var.hasSignature)
+    if(v.var.has_signature)
       t=java_type_from_string(v.var.signature);
     else
       t=java_type_from_string(v.var.descriptor);
