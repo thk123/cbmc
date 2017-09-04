@@ -85,12 +85,16 @@ class java_generic_typet:public reference_typet
 {
 public:
   typet bound;
+  const irep_idt &type_var_name;
 
   void set_bound(const typet &_bound)
   {
     bound=_bound;
   }
-  java_generic_typet() : reference_typet()
+
+  java_generic_typet(const irep_idt &_type_var_name) :
+    reference_typet(),
+    type_var_name(_type_var_name)
   {
     set(ID_java_generic_type, true);
     // set standard bound
@@ -124,7 +128,8 @@ inline java_generic_typet &to_java_generic_type(typet &type)
 class java_inst_generic_typet:public java_generic_typet
 {
 public:
-  java_inst_generic_typet(const reference_typet &type)
+  java_inst_generic_typet(const reference_typet &type) :
+    java_generic_typet(irep_idt())
   {
     set(ID_java_inst_generic_type, true);
   }
@@ -164,7 +169,6 @@ public:
   typedef std::vector<typet> type_parameterst;
 
   type_parameterst type_parameters;
-  java_generic_typet generic_type;
 
   java_type_with_generic_typet() : reference_typet()
   {

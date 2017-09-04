@@ -284,8 +284,13 @@ typet java_type_from_string(const std::string &src)
   case 'Z': return java_boolean_type();
   case 'V': return java_void_type();
   case 'J': return java_long_type();
-  case 'T': return java_generic_typet();
-
+  case 'T':
+  {
+    // parse name of type variable
+    INVARIANT(src[src.size()-1]==';', "Generic type name must en on ';'.");
+    irep_idt type_var_name(src.substr(1, src.size()-2));
+    return java_generic_typet(type_var_name);
+  }
   case 'L':
     {
       // ends on ;
