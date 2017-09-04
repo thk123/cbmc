@@ -55,7 +55,7 @@ public:
   {
   public:
     std::string descriptor;
-    bool has_signature=false;
+    bool has_signature;
     std::string signature;
     irep_idt name;
     bool is_public, is_protected, is_private, is_static, is_final;

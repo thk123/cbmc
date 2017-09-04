@@ -41,6 +41,36 @@ inline java_class_typet &to_java_class_type(typet &type)
   return static_cast<java_class_typet &>(type);
 }
 
+class java_generics_class_typet:public java_class_typet
+{
+ public:
+  // uninstantiated type variables
+
+  java_generics_class_typet()
+  {
+    set(ID_java_type_with_generic_type, true);
+  }
+};
+
+inline bool is_java_generics_class_type(const typet &type)
+{
+  return type.get_bool(ID_java_type_with_generic_type);
+}
+
+inline const java_generics_class_typet &to_java_generics_class_type(
+  const java_class_typet &type)
+{
+  PRECONDITION(is_java_generics_class_type(type));
+  return static_cast<const java_generics_class_typet &>(type);
+}
+
+inline java_generics_class_typet &to_java_generics_class_type(
+  java_class_typet &type)
+{
+  PRECONDITION(is_java_generics_class_type(type));
+  return static_cast<java_generics_class_typet &>(type);
+}
+
 typet java_int_type();
 typet java_long_type();
 typet java_short_type();
@@ -84,21 +114,19 @@ bool is_valid_java_array(const struct_typet &type);
 class java_generic_typet:public reference_typet
 {
 public:
-  typet bound;
   const irep_idt &type_var_name;
-
   void set_bound(const typet &_bound)
   {
-    bound=_bound;
+    subtype()=_bound;
   }
 
-  java_generic_typet(const irep_idt &_type_var_name) :
+  java_generic_typet(const typet &_bound, const irep_idt &_type_var_name) :
     reference_typet(),
     type_var_name(_type_var_name)
   {
     set(ID_java_generic_type, true);
-    // set standard bound
-    set_bound(java_type_from_string("Ljava/lang/Object;"));
+    // set bound
+    set_bound(_bound);
   }
 };
 
@@ -129,7 +157,7 @@ class java_inst_generic_typet:public java_generic_typet
 {
 public:
   java_inst_generic_typet(const reference_typet &type) :
-    java_generic_typet(irep_idt())
+    java_generic_typet(type, irep_idt())
   {
     set(ID_java_inst_generic_type, true);
   }

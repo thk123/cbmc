@@ -101,6 +101,18 @@ void java_bytecode_convert_classt::convert(const classt &c)
   }
 
   java_class_typet class_type;
+  if(c.has_signature)
+  {
+    java_generics_class_typet generic_class_type;
+    class_type=generic_class_type;
+#ifdef DEBUG
+    std::cout << "INFO: found generic class signature "
+              << c.signature
+              << " in parsed class "
+              << c.name
+              << std::endl;
+#endif
+  }
 
   class_type.set_tag(c.name);
   class_type.set(ID_base_name, c.name);
@@ -139,15 +151,6 @@ void java_bytecode_convert_classt::convert(const classt &c)
   {
     symbol_typet base("java::"+id2string(interface));
     class_type.add_base(base);
-  }
-
-  if(c.has_signature)
-  {
-#ifdef DEBUG
-    std::cout << "INFO: found generic class type "
-              << c.signature
-              << std::endl;
-#endif
   }
 
   // produce class symbol
@@ -204,7 +207,23 @@ void java_bytecode_convert_classt::convert(
   symbolt &class_symbol,
   const fieldt &f)
 {
-  typet field_type=java_type_from_string(f.descriptor);
+  typet field_type;
+  if(f.has_signature)
+  {
+    field_type=java_type_from_string(f.signature);
+    java_generic_typet &gen_type=to_java_generic_type(field_type);
+    gen_type.set_bound(java_type_from_string("Ljava/lang/Number;").subtype());
+#ifdef DEBUG
+    std::cout << "INFO field with signature "
+              << f.name
+              << " : "
+              << f.signature
+              << " currently fall back to Ljava/lang/Object;"
+              << std::endl;
+#endif
+  }
+  else
+    field_type=java_type_from_string(f.descriptor);
 
   // is this a static field?
   if(f.is_static)
