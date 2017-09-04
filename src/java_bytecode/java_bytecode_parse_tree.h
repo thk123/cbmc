@@ -64,8 +64,8 @@ public:
     virtual void output(std::ostream &out) const = 0;
 
     membert():
-      is_public(false), is_protected(false), is_private(false),
-      is_static(false), is_final(false)
+      has_signature(false), is_public(false), is_protected(false),
+      is_private(false), is_static(false), is_final(false)
     {
     }
   };

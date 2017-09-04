@@ -141,6 +141,15 @@ void java_bytecode_convert_classt::convert(const classt &c)
     class_type.add_base(base);
   }
 
+  if(c.has_signature)
+  {
+#ifdef DEBUG
+    std::cout << "INFO: found generic class type "
+              << c.signature
+              << std::endl;
+#endif
+  }
+
   // produce class symbol
   symbolt new_symbol;
   new_symbol.base_name=c.name;
