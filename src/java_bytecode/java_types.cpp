@@ -181,7 +181,9 @@ size_t java_generics_find_closing(const std::string &src, size_t open_pos)
     }
     c_pos++;
     // limit depth to sensible values
-    assert(depth<=(src.size()-open_pos));
+    INVARIANT(
+      depth<=(src.size()-open_pos),
+      "No closing \'>\' found in generic type.");
   }
   // did not find corresponding closing '>'
   return std::string::npos;

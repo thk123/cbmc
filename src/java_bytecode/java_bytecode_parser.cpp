@@ -1061,7 +1061,8 @@ void java_bytecode_parsert::rcode_attribute(methodt &method)
 
     INVARIANT(
       local_variable_type_table_length<=method.local_variable_table.size(),
-      "LVT must have at least as many elements as the type table.");
+      "Local variable type table cannot have more elements "
+      "than the local variable table.");
     for(std::size_t i=0; i<local_variable_type_table_length; i++)
     {
       u2 start_pc=read_u2();

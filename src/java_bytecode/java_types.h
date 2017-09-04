@@ -119,8 +119,8 @@ inline java_generic_typet &to_java_generic_type(typet &type)
   return static_cast<java_generic_typet &>(type);
 }
 
-/// class to hold instantiated type variable
-/// bound is exact
+/// class to hold instantiated type variable bound is exact, for example the
+/// `java.lang.Integer` type in a `List<Integer>`
 class java_inst_generic_typet:public java_generic_typet
 {
 public:
@@ -151,7 +151,13 @@ inline java_inst_generic_typet &to_java_inst_generic_type(typet &type)
   return static_cast<java_inst_generic_typet &>(type);
 }
 
-/// class to hold type with generic type variable
+/// class to hold type with generic type variable, for example `java.util.List`
+/// in either List<Integer> or List<T>. The vector holds the types of the type
+/// Variables, that is the vector has the length of the number of type variables
+/// of the generic class. For example in `HashMap<K, V>` it would contain two
+/// elements, each of type `java_generic_typet`, in `HashMap<Integer, V>` it
+/// would contains two elements, the first of type `java_inst_generic_typet` and
+/// the second of type `java_generic_typet`.
 class java_type_with_generic_typet:public reference_typet
 {
 public:
