@@ -104,7 +104,6 @@ void java_bytecode_convert_classt::convert(const classt &c)
   if(c.has_signature)
   {
     java_generics_class_typet generic_class_type;
-    class_type=generic_class_type;
 #ifdef DEBUG
     std::cout << "INFO: found generic class signature "
               << c.signature
@@ -112,6 +111,10 @@ void java_bytecode_convert_classt::convert(const classt &c)
               << c.name
               << std::endl;
 #endif
+    for(auto &t : java_generic_type_from_string(id2string(c.name), c.signature))
+      generic_class_type.copy_to_subtypes(t);
+
+    class_type=generic_class_type;
   }
 
   class_type.set_tag(c.name);
@@ -210,9 +213,8 @@ void java_bytecode_convert_classt::convert(
   typet field_type;
   if(f.has_signature)
   {
-    field_type=java_type_from_string(f.signature);
-    java_generic_typet &gen_type=to_java_generic_type(field_type);
-    gen_type.set_bound(java_type_from_string("Ljava/lang/Number;").subtype());
+    field_type=java_type_from_string(f.descriptor); // FIXME
+//    java_generic_typet &gen_type=to_java_generic_type(field_type);
 #ifdef DEBUG
     std::cout << "INFO field with signature "
               << f.name

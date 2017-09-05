@@ -290,8 +290,8 @@ typet java_type_from_string(const std::string &src)
     INVARIANT(src[src.size()-1]==';', "Generic type name must en on ';'.");
     irep_idt type_var_name(src.substr(1, src.size()-2));
     return java_generic_typet(
-      java_type_from_string("Ljava/lang/Object;").subtype(),
-      type_var_name);
+      type_var_name,
+      java_type_from_string("Ljava/lang/Object;").subtype());
   }
   case 'L':
     {
@@ -350,10 +350,6 @@ typet java_type_from_string(const std::string &src)
                     << " src " << src
                     << std::endl;
 #endif
-          INVARIANT(
-            t.id()==ID_pointer,
-            "Java type parameter must be pointer type");
-
           // is an uninstantiated (pure) generic type
           if(is_java_generic_type(t))
             result.type_parameters.push_back(t);
@@ -366,7 +362,7 @@ typet java_type_from_string(const std::string &src)
           // current type
           else
           {
-            java_inst_generic_typet inst_type(to_reference_type(t));
+            java_inst_generic_typet inst_type(to_reference_type(t).subtype());
             result.type_parameters.push_back(t);
           }
 
@@ -423,6 +419,41 @@ char java_char_from_type(const typet &type)
     return 'z';
 
   return 'a';
+}
+
+/// Converts the content of a generic class type into a vector of Java types
+std::vector<typet> java_generic_type_from_string(
+  const std::string &classname,
+  const std::string &src)
+{
+  /// the class signature is of the form <TX:Bound_X;TY:Bound_Y;>base_class
+  size_t signature_end=src.find('>');
+  INVARIANT(
+    src[0]=='<' && signature_end!=std::string::npos,
+    "Class signature has unexpected format");
+  std::string signature(src.substr(1, signature_end-1));
+
+  PRECONDITION(signature[signature.size()-1]==';');
+
+  std::vector<typet> types;
+  size_t var_sep=signature.find(';');
+  while(var_sep!=std::string::npos)
+  {
+    size_t bound_sep=signature.find(':');
+    INVARIANT(bound_sep!=std::string::npos, "No bound for type variable.");
+    std::string type_var_name(
+      "java::"+id2string(classname)+"::"+signature.substr(0, bound_sep));
+    std::string bound_type(signature.substr(bound_sep+1, var_sep-bound_sep));
+
+    java_generic_typet type_var_type(
+      type_var_name,
+      java_type_from_string(bound_type).subtype());
+
+    types.push_back(type_var_type);
+    signature=signature.substr(var_sep+1, std::string::npos);
+    var_sep=signature.find(';');
+  }
+  return types;
 }
 
 // java/lang/Object -> java.lang.Object
