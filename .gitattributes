@@ -1,5 +1,5 @@
-*.cpp text
-*.c text
+*.cpp text merge=doxy_merge_driver
+*.h text merge=doxy_merge_driver
 *.h text
 *.y text
 *.tex text
