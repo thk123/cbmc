@@ -515,7 +515,9 @@ bool java_entry_point(
     symbol_table,
     message_handler,
     assume_init_pointers_not_null,
-    max_nondet_array_length);
+    max_nondet_array_length,
+    max_nondet_tree_depth,
+    pointer_type_selector);
 }
 
 /// Generate a _start function for a specific function
@@ -529,7 +531,9 @@ bool generate_java_start_function(
   symbol_tablet &symbol_table,
   message_handlert &message_handler,
   bool assume_init_pointers_not_null,
-  size_t max_nondet_array_length)
+  size_t max_nondet_array_length,
+  size_t max_nondet_tree_depth,
+  const select_pointer_typet &pointer_type_selector)
 {
   messaget message(message_handler);
   code_blockt init_code;

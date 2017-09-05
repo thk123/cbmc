@@ -45,6 +45,8 @@ bool generate_java_start_function(
   class symbol_tablet &symbol_table,
   class message_handlert &message_handler,
   bool assume_init_pointers_not_null,
-  size_t max_nondet_array_length);
+  size_t max_nondet_array_length,
+  size_t max_nondet_tree_depth,
+  const select_pointer_typet &pointer_type_selector);
 
 #endif // CPROVER_JAVA_BYTECODE_JAVA_ENTRY_POINT_H
