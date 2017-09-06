@@ -10,7 +10,7 @@ Author: Daniel Kroening, kroening@kroening.com
 /// JAVA Bytecode Language Conversion
 
 #include "java_bytecode_convert_class.h"
-
+#define DEBUG
 #ifdef DEBUG
 #include <iostream>
 #endif
@@ -166,6 +166,10 @@ void java_bytecode_convert_classt::convert(const classt &c)
   new_symbol.mode=ID_java;
   new_symbol.is_type=true;
 
+  if(is_java_generics_class_type(new_symbol.type))
+    std::cout << "INFO new symbol has generic type"
+              << std::endl;
+
   symbolt *class_symbol;
 
   // add before we do members
@@ -175,6 +179,11 @@ void java_bytecode_convert_classt::convert(const classt &c)
     error() << "failed to add class symbol " << new_symbol.name << eom;
     throw 0;
   }
+
+  if(is_java_generics_class_type(class_symbol->type))
+    std::cout << "INFO moved symbol has generic type name "
+              << class_symbol->name
+              << std::endl;
 
   // now do fields
   for(const auto &field : c.fields)

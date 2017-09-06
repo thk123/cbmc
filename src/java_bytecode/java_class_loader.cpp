@@ -5,7 +5,7 @@ Module:
 Author: Daniel Kroening, kroening@kroening.com
 
 \*******************************************************************/
-
+#include <iostream>
 #include "java_class_loader.h"
 
 #include <stack>

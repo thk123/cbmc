@@ -24,7 +24,7 @@ Author: Daniel Kroening, kroening@kroening.com
 #include "java_bytecode_parse_tree.h"
 #include "java_types.h"
 #include "bytecode_info.h"
-
+#define DEBUG
 #ifdef DEBUG
 #include <iostream>
 #endif

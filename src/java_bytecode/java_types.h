@@ -9,11 +9,10 @@ Author: Daniel Kroening, kroening@kroening.com
 
 #ifndef CPROVER_JAVA_BYTECODE_JAVA_TYPES_H
 #define CPROVER_JAVA_BYTECODE_JAVA_TYPES_H
-
+#include <iostream>
 #include <util/invariant.h>
 #include <util/type.h>
 #include <util/std_types.h>
-
 
 class java_class_typet:public class_typet
 {
