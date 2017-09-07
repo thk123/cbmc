@@ -81,13 +81,11 @@ SCENARIO("java_bytecode_parse_generics",
         const symbolt &class_symbol=new_symbol_table.lookup("java::generics$element");
         const typet &symbol_type=class_symbol.type;
 
-        REQUIRE(symbol_type.id()==ID_struct);
         class_typet class_type=to_class_type(symbol_type);
-        REQUIRE(class_type.is_class());
         java_class_typet java_class_type=to_java_class_type(class_type);
-        REQUIRE(is_java_generics_class_type(java_class_type));
         java_generics_class_typet java_generics_class_type=
           to_java_generics_class_type(java_class_type);
+
         REQUIRE(java_generics_class_type.subtypes().size()==1);
         typet &type_var=java_generics_class_type.subtypes().front();
         REQUIRE(is_java_generic_type(type_var));
@@ -100,4 +98,43 @@ SCENARIO("java_bytecode_parse_generics",
       }
     }
   }
+
+  GIVEN("Some class files with generic type variable")
+  {
+    WHEN("Parsing a class with bounded type variable")
+    {
+      java_lang->parse(java_code_stream, "generics$bound_element.class");
+
+      symbol_tablet new_symbol_table;
+      java_lang->typecheck(new_symbol_table, "");
+
+      java_lang->final(new_symbol_table);
+
+      REQUIRE(new_symbol_table.has_symbol("java::generics$bound_element"));
+      THEN("The symbol type should be generic")
+      {
+        const symbolt &class_symbol=new_symbol_table.lookup("java::generics$bound_element");
+        const typet &symbol_type=class_symbol.type;
+
+        REQUIRE(symbol_type.id()==ID_struct);
+        class_typet class_type=to_class_type(symbol_type);
+        REQUIRE(class_type.is_class());
+        java_class_typet java_class_type=to_java_class_type(class_type);
+        REQUIRE(is_java_generics_class_type(java_class_type));
+        java_generics_class_typet java_generics_class_type=
+          to_java_generics_class_type(java_class_type);
+        REQUIRE(java_generics_class_type.subtypes().size()==1);
+        typet &type_var=java_generics_class_type.subtypes().front();
+        REQUIRE(is_java_generic_type(type_var));
+        java_generic_typet generic_type_var=to_java_generic_type(type_var);
+
+        REQUIRE(generic_type_var.id()=="java::generics$bound_element::NUM");
+        typet &sub_type=generic_type_var.subtype();
+        REQUIRE(sub_type.id()==ID_symbol);
+        symbol_typet &bound_type=to_symbol_type(sub_type);
+        REQUIRE(bound_type.get_identifier()=="java::java.lang.Number");
+      }
+    }
+  }
+
 }
