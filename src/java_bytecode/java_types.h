@@ -155,10 +155,6 @@ inline java_inst_generic_typet &to_java_inst_generic_type(typet &type)
 class java_type_with_generic_typet:public reference_typet
 {
 public:
-  typedef std::vector<typet> type_parameterst;
-
-  type_parameterst type_parameters;
-
   java_type_with_generic_typet(const typet &_type) : reference_typet(_type, 32)
   {
     set(ID_java_type_with_generic_type, true);
