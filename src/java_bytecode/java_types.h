@@ -159,7 +159,7 @@ public:
 
   type_parameterst type_parameters;
 
-  java_type_with_generic_typet() : reference_typet()
+  java_type_with_generic_typet(const typet &_type) : reference_typet(_type, 32)
   {
     set(ID_java_type_with_generic_type, true);
   }

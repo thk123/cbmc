@@ -315,8 +315,9 @@ typet java_type_from_string(const std::string &src)
           if(generic_container_class[i]=='/')
             generic_container_class[i]='.';
 
-        java_type_with_generic_typet result;
-        result.subtype()=symbol_typet("java::"+generic_container_class);
+        //java_type_with_generic_typet result;
+        reference_typet result=
+          java_reference_type(symbol_typet("java::"+generic_container_class));
         result.subtype().set(ID_C_base_name, generic_container_class);
 
 #ifdef DEBUG
@@ -351,20 +352,20 @@ typet java_type_from_string(const std::string &src)
                     << std::endl;
 #endif
           // is an uninstantiated (pure) generic type
-          if(is_java_generic_type(t))
-            result.type_parameters.push_back(t);
+          // if(is_java_generic_type(t))
+          //   result.type_parameters.push_back(t);
 
           // is another generic type container
-          else if(is_java_type_with_generic_type(t))
-            result.type_parameters.push_back(t);
+          // else if(is_java_type_with_generic_type(t))
+          //   result.type_parameters.push_back(t);
 
           // is a concrete type, i.e., instantiation of a generic type of the
           // current type
-          else
-          {
-            java_inst_generic_typet inst_type(to_reference_type(t).subtype());
-            result.type_parameters.push_back(t);
-          }
+          // else
+          // {
+          //   java_inst_generic_typet inst_type(to_reference_type(t).subtype());
+          //   result.type_parameters.push_back(t);
+          // }
 
           curr_start=curr_end+1;
         }
