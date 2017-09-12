@@ -40,8 +40,8 @@ bvt boolbvt::convert_struct(const struct_exprt &expr)
     if(!base_type_eq(subtype, op.type(), ns))
     {
       error().source_location=expr.find_source_location();
-      error() << "struct: component type does not match: "
-              << subtype.pretty() << " vs. "
+      error() << "struct: component type does not match: " << messaget::endl
+              << subtype.pretty() << messaget::endl << " vs. " << messaget::endl
               << op.type().pretty() << eom;
       throw 0;
     }

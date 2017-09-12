@@ -53,8 +53,9 @@ bvt boolbvt::convert_member(const member_exprt &expr)
           #endif
 
           error().source_location=expr.find_source_location();
-          error() << "member: component type does not match: "
-                  << subtype.pretty() << " vs. "
+          error() << "member: component type does not match:" << messaget::endl
+                  << subtype.pretty()
+                  << messaget::endl << "vs." << messaget::endl
                   << expr.type().pretty() << eom;
           throw 0;
         }

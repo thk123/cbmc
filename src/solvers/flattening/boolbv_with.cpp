@@ -234,8 +234,8 @@ void boolbvt::convert_with_struct(
       {
         error().source_location=type.source_location();
         error() << "with/struct: component `" << component_name
-                << "' type does not match: "
-                << subtype.pretty() << " vs. "
+                << "' type does not match:" << messaget::endl
+                << subtype.pretty() << messaget::endl << "vs." << messaget::endl
                 << op2.type().pretty() << eom;
         throw 0;
       }
