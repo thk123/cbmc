@@ -1,0 +1,5 @@
+CORE
+SimpleGenericUser.class
+--function SimpleGenericUser.test
+EXIT=0
+^VERIFICATION SUCCESSFUL$
