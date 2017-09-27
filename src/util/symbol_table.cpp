@@ -107,10 +107,20 @@ bool symbol_tablet::remove(const irep_idt &name)
 /// \param out: The ostream to direct output to
 void symbol_tablet::show(std::ostream &out) const
 {
+  show(out, [](const symbolt &){ return true; });
+}
+
+void symbol_tablet::show(std::ostream &out, std::function<bool (const symbolt &)> print_condition) const
+{
   out << "\n" << "Symbols:" << "\n";
 
-  forall_symbols(it, symbols)
-    out << it->second;
+  for(const auto &symbol : symbols)
+  {
+    if(print_condition(symbol.second))
+    {
+      out << symbol.second;
+    }
+  }
 }
 
 /// Find a symbol in the symbol table. Throws a string if no such symbol is
