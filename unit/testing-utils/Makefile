@@ -1,5 +1,6 @@
 SRC = \
   c_to_expr.cpp \
+  check_goto_functions.cpp \
   load_java_class.cpp \
   require_expr.cpp \
   # Empty last line (please keep above list sorted!)
