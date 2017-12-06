@@ -79,6 +79,8 @@ symbolt generate_java_generic_typet::operator()(
     replacement_components,
     existing_generic_type.generic_type_arguments()};
 
+  INVARIANT(!new_java_class.get_bool(ID_incomplete_class), "");
+
   const type_symbolt &class_symbol =
     build_symbol_from_specialised_class(new_java_class);
 

@@ -26,6 +26,8 @@ Author: Daniel Kroening, kroening@kroening.com
 #include <list>
 #else
 #include <map>
+#include <iostream>
+
 #endif
 
 #ifdef USE_DSTRING
@@ -148,6 +150,12 @@ public:
     #ifdef IREP_DEBUG
     std::cout << "ASSIGN\n";
     #endif
+
+    if(irep.get_bool(ID_C_specialized_generic_java_class))
+    {
+      std::cout << irep.pretty() << std::endl;
+    }
+
 
     // Ordering is very important here!
     // Consider self-assignment, which may destroy 'irep'

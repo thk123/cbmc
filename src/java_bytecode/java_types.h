@@ -463,20 +463,40 @@ public:
     components() = new_components;
     set_tag(tag);
 
+    INVARIANT(
+      std::none_of(
+        specialised_parameters.begin(),
+        specialised_parameters.end(),
+        [](const typet &param) {
+          const typet &subtype = param.subtype();
+          if(subtype.id() == ID_symbol)
+          {
+            if(is_java_array_tag(subtype.get(ID_identifier)))
+            {
+              const typet &array_type =
+                java_array_element_type(to_symbol_type(subtype));
+              return is_java_generic_parameter(array_type);
+            }
+          }
+
+          return false;
+        }),
+      "");
+
     generic_type_arguments() = specialised_parameters;
   }
 
   /// \return vector of type variables
   const generic_type_argumentst &generic_type_arguments() const
   {
-    return (const generic_type_argumentst &)(find(ID_type_variables).get_sub());
+    return (const generic_type_argumentst &)(find("specalised_type_variables").get_sub());
   }
 
 private:
   /// \return vector of type variables
   generic_type_argumentst &generic_type_arguments()
   {
-    return (generic_type_argumentst &)(add(ID_type_variables).get_sub());
+    return (generic_type_argumentst &)(add("specalised_type_variables").get_sub());
   }
 };
 
