@@ -173,6 +173,7 @@ public:
     bool is_abstract=false;
     bool is_enum=false;
     bool is_public=false, is_protected=false, is_private=false;
+    bool read_attribute_bootstrapmethods = false;
     size_t enum_elements=0;
 
     typedef std::list<irep_idt> implementst;

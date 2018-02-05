@@ -61,6 +61,27 @@ public:
     pool_entryt():tag(0), ref1(0), ref2(0), number(0) { }
   };
 
+  enum class method_handle_typet
+  {
+    BOOTSTRAP_METHOD_HANDLE,
+    BOOTSTRAP_METHOD_HANDLE_ALT,
+    LAMBDA_METHOD_HANDLE,
+    UNKNOWN_HANDLE
+  };
+
+  struct lambda_method_handlet
+  {
+    method_handle_typet handle_type;
+    irep_idt lambda_method_name;
+    lambda_method_handlet()
+      : handle_type(method_handle_typet::UNKNOWN_HANDLE)
+    {
+    }
+  };
+
+  typedef std::vector<lambda_method_handlet> lambda_method_handlest;
+  lambda_method_handlest lambda_method_handles;
+
   typedef std::vector<pool_entryt> constant_poolt;
   constant_poolt constant_pool;
 
@@ -127,6 +148,7 @@ protected:
   void get_class_refs();
   void get_class_refs_rec(const typet &);
   void parse_local_variable_type_table(methodt &method);
+  void parse_methodhandle(u2, u2, lambda_method_handlet &);
 
   void skip_bytes(std::size_t bytes)
   {
@@ -1381,6 +1403,101 @@ void java_bytecode_parsert::rclass_attribute(classt &parsed_class)
   {
     rRuntimeAnnotation_attribute(parsed_class.annotations);
   }
+  else if(attribute_name == "BootstrapMethods")
+  {
+    INVARIANT(
+      !parsed_class.read_attribute_bootstrapmethods,
+      "only one BootstrapMethods argument is allowed in a class file");
+
+    // mark as read in parsed class
+    parsed_class.read_attribute_bootstrapmethods = true;
+    u2 num_bootstrap_methods = read_u2();
+    for(size_t i = 0; i < num_bootstrap_methods; i++)
+    {
+      u2 bootstrap_methodhandle_ref = read_u2();
+      u2 num_bootstrap_arguments = read_u2();
+
+      lambda_method_handlet handle;
+      parse_methodhandle(bootstrap_methodhandle_ref, num_bootstrap_arguments, handle);
+      if(handle.handle_type != method_handle_typet::BOOTSTRAP_METHOD_HANDLE)
+      {
+        lambda_method_handlet empty_handle;
+        lambda_method_handles.push_back(empty_handle);
+        error() << "ERROR: could not parse BootstrapMethods entry" << eom;
+      }
+      else
+      {
+        // try parsing bootstrap method handle
+        if(num_bootstrap_arguments == 3)
+        {
+
+          // each entry contains a MethodHandle structure
+          // u2 tag
+          // u2 reference kind which must be in the range from 1 to 9
+          // u2 reference index into the constant pool
+          //
+          // reference kinds use the following
+          // 1 to 4 must point to a CONSTANT_Fieldref structure
+          // 5 or 8 must point to a CONSTANT_Methodref structure
+          // 6 or 7 must point to a CONSTANT_Methodref or
+          // CONSTANT_InterfaceMethodref structure, if the class file version number
+          // is 52.0 or above, to a CONSTANT_Methodref only in the case of less than
+          // 52.0
+          // 9 must point to a CONSTANT_InterfaceMethodref structure
+
+          // the index must point to a CONSTANT_String
+          //                           CONSTANT_Class
+          //                           CONSTANT_Integer
+          //                           CONSTANT_Long
+          //                           CONSTANT_Float
+          //                           CONSTANT_Double
+          //                           CONSTANT_MethodHandle
+          //                           CONSTANT_MethodType
+          u2 arg_index1 = read_u2();
+          u2 arg_index2 = read_u2();
+          u2 arg_index3 = read_u2();
+
+          const pool_entryt &arg1 = pool_entry(arg_index1);
+          const pool_entryt &arg2 = pool_entry(arg_index2);
+          const pool_entryt &arg3 = pool_entry(arg_index3);
+
+          // std::cout << "bootstrap arg1 tag " << std::to_string(arg1.tag) << std::endl;
+          // std::cout << "bootstrap arg2 tag " << std::to_string(arg2.tag) << std::endl;
+          // std::cout << "bootstrap arg3 tag " << std::to_string(arg3.tag) << std::endl;
+
+          if(!(arg1.tag == CONSTANT_MethodType &&
+               arg2.tag == CONSTANT_MethodHandle &&
+               arg3.tag == CONSTANT_MethodType))
+            return;
+
+          // std::cout << "MethodType arg1 " << id2string(pool_entry(arg1.ref1).s)
+          //           << "\nMethodType arg2 " << id2string(pool_entry(arg3.ref1).s)
+          //           << std::endl;
+          // std::cout << std::endl;
+
+          lambda_method_handlet real_handle;
+          parse_methodhandle(arg_index2, 0, real_handle);
+          if(real_handle.handle_type != method_handle_typet::LAMBDA_METHOD_HANDLE)
+          {
+            lambda_method_handlet empty_handle;
+            lambda_method_handles.push_back(empty_handle);
+            error() << "ERROR: could not parse lambda function method handle" << eom;
+          }
+          else
+          {
+            lambda_method_handles.push_back(real_handle);
+          }
+        }
+        else
+        {
+          // skip arguments here
+          for(size_t i = 0; i < num_bootstrap_arguments; i++)
+            read_u2();
+          error() << "ERROR: num_bootstrap_arguments must be 3" << eom;
+        }
+      }
+    }
+  }
   else
     skip_bytes(attribute_length);
 }
@@ -1507,5 +1624,48 @@ void java_bytecode_parsert::parse_local_variable_type_table(methodt &method)
     INVARIANT(
       found,
       "Entry in LocalVariableTypeTable must be present in LVT");
+  }
+}
+
+// read method handle pointed to from constant pool entry at index, supports
+// reading method handles for bootstrap methods and lambda methods
+void java_bytecode_parsert::parse_methodhandle(
+  u2 index,
+  u2 num_bootstrap_arguments,
+  lambda_method_handlet &handle)
+{
+  const pool_entryt entry = pool_entry(index);
+  INVARIANT(
+    entry.tag == CONSTANT_MethodHandle,
+    "constant pool entry must be a MethodHandle");
+  const auto &ref_entry = pool_entry(entry.ref2);
+  INVARIANT(
+    (entry.ref1 > 0 && entry.ref1 < 10),
+    "reference kind of Methodhandle must be in the range of 1 to 9");
+
+  const auto &class_entry = pool_entry(ref_entry.ref1);
+  const auto &nameandtype_entry = pool_entry(ref_entry.ref2);
+
+  const std::string method_name =
+    id2string(pool_entry(class_entry.ref1).s) + "."
+    + id2string(pool_entry(nameandtype_entry.ref1).s)
+    + id2string(pool_entry(nameandtype_entry.ref2).s);
+
+  if(
+    method_name ==
+    "java/lang/invoke/LambdaMetafactory.metafactory(Ljava/lang/invoke/"
+    "MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/"
+    "lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/"
+    "MethodType;)Ljava/lang/invoke/CallSite;")
+    handle.handle_type = method_handle_typet::BOOTSTRAP_METHOD_HANDLE;
+
+  // names seem to be lambda$$POSTFIX$NUM
+  // where $POSTFIX is $FUN for a function name in which the lambda is define
+  //                   "static" when it is a static member of the class
+  //                   "new" when it is a class variable, instantiated in <init>
+  if(has_prefix(id2string(pool_entry(nameandtype_entry.ref1).s), "lambda$"))
+  {
+    handle.lambda_method_name = pool_entry(nameandtype_entry.ref1).s;
+    handle.handle_type = method_handle_typet::LAMBDA_METHOD_HANDLE;
   }
 }
