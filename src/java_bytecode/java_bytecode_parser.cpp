@@ -48,9 +48,12 @@ public:
   typedef java_bytecode_parse_treet::instructiont instructiont;
   typedef java_bytecode_parse_treet::annotationt annotationt;
   typedef java_bytecode_parse_treet::annotationst annotationst;
-  typedef java_bytecode_parse_treet::classt::lambda_method_handlet lambda_method_handlet;
-  typedef java_bytecode_parse_treet::classt::method_handle_typet method_handle_typet;
-  typedef java_bytecode_parse_treet::classt::lambda_method_handlest lambda_method_handlest;
+  typedef java_bytecode_parse_treet::classt::lambda_method_handlet
+    lambda_method_handlet;
+  typedef java_bytecode_parse_treet::classt::method_handle_typet
+    method_handle_typet;
+  typedef java_bytecode_parse_treet::classt::lambda_method_handlest
+    lambda_method_handlest;
 
   java_bytecode_parse_treet parse_tree;
 
@@ -1470,6 +1473,14 @@ void java_bytecode_parsert::rclass_attribute(classt &parsed_class)
             real_handle.interface_type = pool_entry(arg1.ref1).s;
             real_handle.method_type = pool_entry(arg3.ref1).s;
             parsed_class.lambda_method_handles.push_back(real_handle);
+            status()
+              << "lambda function reference "
+              << id2string(real_handle.lambda_method_name)
+              << "\n  interface type is "
+              << id2string(real_handle.interface_type = pool_entry(arg1.ref1).s)
+              << "\n  method type is "
+              << id2string(real_handle.interface_type = pool_entry(arg3.ref1).s)
+              << eom;
           }
         }
         else
