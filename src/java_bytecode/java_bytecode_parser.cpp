@@ -135,7 +135,7 @@ protected:
   void get_class_refs();
   void get_class_refs_rec(const typet &);
   void parse_local_variable_type_table(methodt &method);
-  void parse_methodhandle(u2, u2, lambda_method_handlet &);
+  void parse_methodhandle(const pool_entryt &, lambda_method_handlet &);
 
   void skip_bytes(std::size_t bytes)
   {
@@ -1402,23 +1402,22 @@ void java_bytecode_parsert::rclass_attribute(classt &parsed_class)
     for(size_t i = 0; i < num_bootstrap_methods; i++)
     {
       u2 bootstrap_methodhandle_ref = read_u2();
+      const pool_entryt &entry = pool_entry(bootstrap_methodhandle_ref);
       u2 num_bootstrap_arguments = read_u2();
 
       lambda_method_handlet handle;
-      parse_methodhandle(bootstrap_methodhandle_ref, num_bootstrap_arguments, handle);
-      if(handle.handle_type != method_handle_typet::BOOTSTRAP_METHOD_HANDLE)
-      {
-        lambda_method_handlet empty_handle;
-        parsed_class.lambda_method_handle_map[parsed_class.name].push_back(
-          empty_handle);
-        error() << "ERROR: could not parse BootstrapMethods entry" << eom;
-      }
-      else
+      status() << "INFO: parse BootstrapMethod handle "
+               << num_bootstrap_arguments << " #args"
+               << eom;
+      parse_methodhandle(entry, handle);
+      if(
+        handle.handle_type ==
+          method_handle_typet::BOOTSTRAP_METHOD_HANDLE_ALT ||
+        handle.handle_type == method_handle_typet::BOOTSTRAP_METHOD_HANDLE)
       {
         // try parsing bootstrap method handle
-        if(num_bootstrap_arguments == 3)
+        if(num_bootstrap_arguments >= 3)
         {
-
           // each entry contains a MethodHandle structure
           // u2 tag
           // u2 reference kind which must be in the range from 1 to 9
@@ -1428,9 +1427,9 @@ void java_bytecode_parsert::rclass_attribute(classt &parsed_class)
           // 1 to 4 must point to a CONSTANT_Fieldref structure
           // 5 or 8 must point to a CONSTANT_Methodref structure
           // 6 or 7 must point to a CONSTANT_Methodref or
-          // CONSTANT_InterfaceMethodref structure, if the class file version number
-          // is 52.0 or above, to a CONSTANT_Methodref only in the case of less than
-          // 52.0
+          // CONSTANT_InterfaceMethodref structure, if the class file version
+          // number is 52.0 or above, to a CONSTANT_Methodref only in the case
+          // of less than 52.0
           // 9 must point to a CONSTANT_InterfaceMethodref structure
 
           // the index must point to a CONSTANT_String
@@ -1445,26 +1444,23 @@ void java_bytecode_parsert::rclass_attribute(classt &parsed_class)
           u2 arg_index2 = read_u2();
           u2 arg_index3 = read_u2();
 
+          // skip rest
+          for(size_t i = 3; i < num_bootstrap_arguments; i++)
+            read_u2();
+
           const pool_entryt &arg1 = pool_entry(arg_index1);
           const pool_entryt &arg2 = pool_entry(arg_index2);
           const pool_entryt &arg3 = pool_entry(arg_index3);
-
-          // std::cout << "bootstrap arg1 tag " << std::to_string(arg1.tag) << std::endl;
-          // std::cout << "bootstrap arg2 tag " << std::to_string(arg2.tag) << std::endl;
-          // std::cout << "bootstrap arg3 tag " << std::to_string(arg3.tag) << std::endl;
 
           if(!(arg1.tag == CONSTANT_MethodType &&
                arg2.tag == CONSTANT_MethodHandle &&
                arg3.tag == CONSTANT_MethodType))
             return;
 
-          // std::cout << "MethodType arg1 " << id2string(pool_entry(arg1.ref1).s)
-          //           << "\nMethodType arg2 " << id2string(pool_entry(arg3.ref1).s)
-          //           << std::endl;
-          // std::cout << std::endl;
-
           lambda_method_handlet real_handle;
-          parse_methodhandle(arg_index2, 0, real_handle);
+          status() << "INFO: parse lambda handle" << eom;
+          const pool_entryt &lambda_entry = pool_entry(arg_index2);
+          parse_methodhandle(lambda_entry, real_handle);
           if(
             real_handle.handle_type !=
             method_handle_typet::LAMBDA_METHOD_HANDLE)
@@ -1499,6 +1495,16 @@ void java_bytecode_parsert::rclass_attribute(classt &parsed_class)
             read_u2();
           error() << "ERROR: num_bootstrap_arguments must be 3" << eom;
         }
+      }
+      else
+      {
+        lambda_method_handlet empty_handle;
+        parsed_class.lambda_method_handle_map[parsed_class.name].push_back(
+          empty_handle);
+        // skip arguments here
+        for(size_t i = 0; i < num_bootstrap_arguments; i++)
+            read_u2();
+        error() << "ERROR: could not parse BootstrapMethods entry" << eom;
       }
     }
   }
@@ -1631,14 +1637,15 @@ void java_bytecode_parsert::parse_local_variable_type_table(methodt &method)
   }
 }
 
-// read method handle pointed to from constant pool entry at index, supports
-// reading method handles for bootstrap methods and lambda methods
+/// Read method handle pointed to from constant pool entry at index, return type
+/// of method handle and name if lambda function is found.
+/// \param entry: the constant pool entry of the methodhandle_info structure
+/// \param[out]: the method_handle type of the methodhandle_structure, either
+/// for a recognized bootstrap method, for a lambda function or unknown
 void java_bytecode_parsert::parse_methodhandle(
-  u2 index,
-  u2 num_bootstrap_arguments,
+  const pool_entryt &entry,
   lambda_method_handlet &handle)
 {
-  const pool_entryt entry = pool_entry(index);
   INVARIANT(
     entry.tag == CONSTANT_MethodHandle,
     "constant pool entry must be a MethodHandle");
@@ -1672,4 +1679,11 @@ void java_bytecode_parsert::parse_methodhandle(
     handle.lambda_method_name = pool_entry(nameandtype_entry.ref1).s;
     handle.handle_type = method_handle_typet::LAMBDA_METHOD_HANDLE;
   }
+
+  else if(
+    method_name ==
+    "java/lang/invoke/LambdaMetafactory.altMetafactory(Ljava/lang/invoke/"
+    "MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/"
+    "MethodType;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;")
+    handle.handle_type = method_handle_typet::BOOTSTRAP_METHOD_HANDLE_ALT;
 }
