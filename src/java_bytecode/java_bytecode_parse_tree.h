@@ -197,7 +197,9 @@ public:
     };
 
     typedef std::vector<lambda_method_handlet> lambda_method_handlest;
-    lambda_method_handlest lambda_method_handles;
+    typedef std::map<irep_idt, lambda_method_handlest>
+      lambda_method_handle_mapt;
+    lambda_method_handle_mapt lambda_method_handle_map;
 
     typedef std::list<irep_idt> implementst;
     implementst implements;

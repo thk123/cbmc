@@ -54,6 +54,8 @@ public:
     method_handle_typet;
   typedef java_bytecode_parse_treet::classt::lambda_method_handlest
     lambda_method_handlest;
+  typedef java_bytecode_parse_treet::classt::lambda_method_handlest
+    lambda_method_handle_mapt;
 
   java_bytecode_parse_treet parse_tree;
 
@@ -1407,7 +1409,8 @@ void java_bytecode_parsert::rclass_attribute(classt &parsed_class)
       if(handle.handle_type != method_handle_typet::BOOTSTRAP_METHOD_HANDLE)
       {
         lambda_method_handlet empty_handle;
-        parsed_class.lambda_method_handles.push_back(empty_handle);
+        parsed_class.lambda_method_handle_map[parsed_class.name].push_back(
+          empty_handle);
         error() << "ERROR: could not parse BootstrapMethods entry" << eom;
       }
       else
@@ -1462,20 +1465,26 @@ void java_bytecode_parsert::rclass_attribute(classt &parsed_class)
 
           lambda_method_handlet real_handle;
           parse_methodhandle(arg_index2, 0, real_handle);
-          if(real_handle.handle_type != method_handle_typet::LAMBDA_METHOD_HANDLE)
+          if(
+            real_handle.handle_type !=
+            method_handle_typet::LAMBDA_METHOD_HANDLE)
           {
             lambda_method_handlet empty_handle;
-            parsed_class.lambda_method_handles.push_back(empty_handle);
-            error() << "ERROR: could not parse lambda function method handle" << eom;
+            parsed_class.lambda_method_handle_map[parsed_class.name].push_back(
+              empty_handle);
+            error() << "ERROR: could not parse lambda function method handle"
+                    << eom;
           }
           else
           {
             real_handle.interface_type = pool_entry(arg1.ref1).s;
             real_handle.method_type = pool_entry(arg3.ref1).s;
-            parsed_class.lambda_method_handles.push_back(real_handle);
+            parsed_class.lambda_method_handle_map[parsed_class.name].push_back(
+              real_handle);
             status()
               << "lambda function reference "
-              << id2string(real_handle.lambda_method_name)
+              << id2string(real_handle.lambda_method_name) << " in class \""
+              << parsed_class.name << "\""
               << "\n  interface type is "
               << id2string(real_handle.interface_type = pool_entry(arg1.ref1).s)
               << "\n  method type is "
