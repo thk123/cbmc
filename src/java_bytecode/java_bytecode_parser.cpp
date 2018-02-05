@@ -73,6 +73,8 @@ public:
   {
     method_handle_typet handle_type;
     irep_idt lambda_method_name;
+    irep_idt interface_type;
+    irep_idt method_type;
     lambda_method_handlet()
       : handle_type(method_handle_typet::UNKNOWN_HANDLE)
     {
@@ -1485,6 +1487,8 @@ void java_bytecode_parsert::rclass_attribute(classt &parsed_class)
           }
           else
           {
+            real_handle.interface_type = pool_entry(arg1.ref1).s;
+            real_handle.method_type = pool_entry(arg3.ref1).s;
             lambda_method_handles.push_back(real_handle);
           }
         }
