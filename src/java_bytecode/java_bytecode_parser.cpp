@@ -773,10 +773,20 @@ void java_bytecode_parsert::rbytecode(
 
     case 'v': // local variable index (one byte)
       {
-        u1 v=read_u1();
-        instruction.args.push_back(from_integer(v, unsignedbv_typet(8)));
+        if(wide_instruction)
+        {
+          u2 v = read_u2();
+          instruction.args.push_back(from_integer(v, unsignedbv_typet(16)));
+          address += 2;
+        }
+        else
+        {
+          u1 v = read_u1();
+          instruction.args.push_back(from_integer(v, unsignedbv_typet(8)));
+          address += 1;
+        }
       }
-      address+=1;
+
       break;
 
     case 'V':
