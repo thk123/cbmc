@@ -48,6 +48,9 @@ public:
   typedef java_bytecode_parse_treet::instructiont instructiont;
   typedef java_bytecode_parse_treet::annotationt annotationt;
   typedef java_bytecode_parse_treet::annotationst annotationst;
+  typedef java_bytecode_parse_treet::classt::lambda_method_handlet lambda_method_handlet;
+  typedef java_bytecode_parse_treet::classt::method_handle_typet method_handle_typet;
+  typedef java_bytecode_parse_treet::classt::lambda_method_handlest lambda_method_handlest;
 
   java_bytecode_parse_treet parse_tree;
 
@@ -60,29 +63,6 @@ public:
     exprt expr;
     pool_entryt():tag(0), ref1(0), ref2(0), number(0) { }
   };
-
-  enum class method_handle_typet
-  {
-    BOOTSTRAP_METHOD_HANDLE,
-    BOOTSTRAP_METHOD_HANDLE_ALT,
-    LAMBDA_METHOD_HANDLE,
-    UNKNOWN_HANDLE
-  };
-
-  struct lambda_method_handlet
-  {
-    method_handle_typet handle_type;
-    irep_idt lambda_method_name;
-    irep_idt interface_type;
-    irep_idt method_type;
-    lambda_method_handlet()
-      : handle_type(method_handle_typet::UNKNOWN_HANDLE)
-    {
-    }
-  };
-
-  typedef std::vector<lambda_method_handlet> lambda_method_handlest;
-  lambda_method_handlest lambda_method_handles;
 
   typedef std::vector<pool_entryt> constant_poolt;
   constant_poolt constant_pool;
@@ -1424,7 +1404,7 @@ void java_bytecode_parsert::rclass_attribute(classt &parsed_class)
       if(handle.handle_type != method_handle_typet::BOOTSTRAP_METHOD_HANDLE)
       {
         lambda_method_handlet empty_handle;
-        lambda_method_handles.push_back(empty_handle);
+        parsed_class.lambda_method_handles.push_back(empty_handle);
         error() << "ERROR: could not parse BootstrapMethods entry" << eom;
       }
       else
@@ -1482,14 +1462,14 @@ void java_bytecode_parsert::rclass_attribute(classt &parsed_class)
           if(real_handle.handle_type != method_handle_typet::LAMBDA_METHOD_HANDLE)
           {
             lambda_method_handlet empty_handle;
-            lambda_method_handles.push_back(empty_handle);
+            parsed_class.lambda_method_handles.push_back(empty_handle);
             error() << "ERROR: could not parse lambda function method handle" << eom;
           }
           else
           {
             real_handle.interface_type = pool_entry(arg1.ref1).s;
             real_handle.method_type = pool_entry(arg3.ref1).s;
-            lambda_method_handles.push_back(real_handle);
+            parsed_class.lambda_method_handles.push_back(real_handle);
           }
         }
         else

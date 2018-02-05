@@ -176,6 +176,29 @@ public:
     bool read_attribute_bootstrapmethods = false;
     size_t enum_elements=0;
 
+    enum class method_handle_typet
+    {
+      BOOTSTRAP_METHOD_HANDLE,
+      BOOTSTRAP_METHOD_HANDLE_ALT,
+      LAMBDA_METHOD_HANDLE,
+      UNKNOWN_HANDLE
+    };
+
+    struct lambda_method_handlet
+    {
+      method_handle_typet handle_type;
+      irep_idt lambda_method_name;
+      irep_idt interface_type;
+      irep_idt method_type;
+      lambda_method_handlet()
+        : handle_type(method_handle_typet::UNKNOWN_HANDLE)
+        {
+        }
+    };
+
+    typedef std::vector<lambda_method_handlet> lambda_method_handlest;
+    lambda_method_handlest lambda_method_handles;
+
     typedef std::list<irep_idt> implementst;
     implementst implements;
     optionalt<std::string> signature;
