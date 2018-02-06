@@ -1,0 +1,4 @@
+CORE
+ManyLocalVariables.class
+--lazy-methods --function ManyLocalVariables.test
+VERIFCATION SUCCESSFUL
