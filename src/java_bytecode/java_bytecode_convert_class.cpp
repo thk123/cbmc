@@ -194,7 +194,7 @@ void java_bytecode_convert_classt::convert(const classt &c)
       }
       class_type=generic_class_type;
     }
-    catch(xxunsupported_java_class_signature_exceptiont)
+    catch(unsupported_java_class_signature_exceptiont)
     {
       warning() << "we currently don't support parsing for example double "
         "bounded, recursive and wild card generics" << eom;
