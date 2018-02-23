@@ -1,5 +1,3 @@
-// import java.util.Random;
-
 public class TooManyLocals {
   public static void test() {
     int [] allInts = new int[256];
