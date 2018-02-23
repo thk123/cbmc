@@ -757,7 +757,6 @@ void java_bytecode_parsert::rbytecode(
         instruction.args.push_back(from_integer(c, signedbv_typet(8)));
       }
       address+=1;
-
       break;
 
     case 'o': // two byte branch offset, signed
