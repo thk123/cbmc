@@ -190,6 +190,7 @@ public:
       irep_idt lambda_method_name;
       irep_idt interface_type;
       irep_idt method_type;
+      irep_idt called_method_descriptor;
       u2_valuest u2_values;
       lambda_method_handlet() : handle_type(method_handle_typet::UNKNOWN_HANDLE)
       {

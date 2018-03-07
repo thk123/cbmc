@@ -101,6 +101,24 @@ bool ci_lazy_methodst::operator()(
   else
     method_worklist2.push_back(main_function.main_function.name);
 
+  // additionally load any lamdbas for the main class
+  if(java_class_loader.class_map.count(main_class)!= 0)
+  {
+    const auto &lamba_methods =
+      java_class_loader.class_map
+        .at(main_class)
+        .parsed_class
+        .lambda_method_handle_map;
+    for(const auto &entry : lamba_methods)
+    {
+      const irep_idt methodid="java::"+id2string(main_class)+"."+
+                              id2string(entry.second.lambda_method_name)+":"+
+                              id2string(entry.second.called_method_descriptor);
+      // force load all the lambda methods of that class
+      method_worklist2.push_back(methodid);
+    }
+  }
+
   // Add any extra entry points specified; we should elaborate these in the
   // same way as the main function.
   std::vector<irep_idt> extra_entry_points=lazy_methods_extra_entry_points;
@@ -130,6 +148,7 @@ bool ci_lazy_methodst::operator()(
 
   std::set<irep_idt> methods_already_populated;
   std::vector<const code_function_callt *> virtual_callsites;
+
 
   bool any_new_methods=false;
   do

@@ -1790,6 +1790,8 @@ java_bytecode_parsert::parse_method_handle(const method_handle_infot &entry)
       name_and_type.get_name(pool_entry_lambda);
     lambda_method_handle.handle_type =
       method_handle_typet::LAMBDA_METHOD_HANDLE;
+    lambda_method_handle.called_method_descriptor =
+      name_and_type.get_descriptor(pool_entry_lambda);
 
     return lambda_method_handle;
   }
