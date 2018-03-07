@@ -167,6 +167,10 @@ private:
   const std::vector<irep_idt> &extra_instantiated_classes;
   const select_pointer_typet &pointer_type_selector;
   const synthetic_methods_mapt &synthetic_methods;
+
+  void add_lambda_methods(
+    const irep_idt &class_name,
+    std::vector<irep_idt> &methods_to_load) const;
 };
 
 #endif // CPROVER_JAVA_BYTECODE_GATHER_METHODS_LAZILY_H

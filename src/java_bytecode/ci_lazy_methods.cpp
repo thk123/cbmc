@@ -102,22 +102,7 @@ bool ci_lazy_methodst::operator()(
     method_worklist2.push_back(main_function.main_function.name);
 
   // additionally load any lamdbas for the main class
-  if(java_class_loader.class_map.count(main_class)!= 0)
-  {
-    const auto &lamba_methods =
-      java_class_loader.class_map
-        .at(main_class)
-        .parsed_class
-        .lambda_method_handle_map;
-    for(const auto &entry : lamba_methods)
-    {
-      const irep_idt methodid="java::"+id2string(main_class)+"."+
-                              id2string(entry.second.lambda_method_name)+":"+
-                              id2string(entry.second.called_method_descriptor);
-      // force load all the lambda methods of that class
-      method_worklist2.push_back(methodid);
-    }
-  }
+  add_lambda_methods(main_class, method_worklist2);
 
   // Add any extra entry points specified; we should elaborate these in the
   // same way as the main function.
@@ -237,6 +222,30 @@ bool ci_lazy_methodst::operator()(
   symbol_table.swap(keep_symbols);
 
   return false;
+}
+
+/// Add all lambdas from a given class to the vector of methods to load
+/// \param class_name: The name of class whose lambda methods should be loaded
+/// \param [out] methods_to_load: All lambda methods full names are added to
+/// this vector.
+void ci_lazy_methodst::add_lambda_methods(
+  const irep_idt &class_name,
+  std::vector<irep_idt> &methods_to_load) const
+{
+  if(java_class_loader.class_map.count(class_name) != 0)
+  {
+    const auto &lamba_methods = java_class_loader.class_map.at(class_name)
+                                  .parsed_class.lambda_method_handle_map;
+    for(const auto &entry : lamba_methods)
+    {
+      const irep_idt method_id =
+        "java::" + id2string(class_name) + "." +
+        id2string(entry.second.lambda_method_name) + ":" +
+        id2string(entry.second.called_method_descriptor);
+      // force load all the lambda methods of that class
+      methods_to_load.push_back(method_id);
+    }
+  }
 }
 
 /// Translates the given list of method names from human-readable to
