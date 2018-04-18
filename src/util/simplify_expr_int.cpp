@@ -893,8 +893,10 @@ bool simplify_exprt::simplify_concatenation(exprt &expr)
       exprt &op=*it;
       if(op.is_true() || op.is_false())
       {
-        bool value=op.is_true();
-        op=constant_exprt(value?ID_1:ID_0, unsignedbv_typet(1));
+        const bool value = op.is_true();
+        op = constant_exprt(
+          value ? ID_1 : ID_0, bitvector_typet(expr.type().id(), 1));
+        result = false;
       }
     }
 
@@ -918,7 +920,7 @@ bool simplify_exprt::simplify_concatenation(exprt &expr)
         opi.type().set(ID_width, new_value.size());
         // erase opn
         expr.operands().erase(expr.operands().begin()+i+1);
-        result=true;
+        result = false;
       }
       else
         i++;
@@ -949,7 +951,7 @@ bool simplify_exprt::simplify_concatenation(exprt &expr)
         opi.type().id(ID_verilog_unsignedbv);
         // erase opn
         expr.operands().erase(expr.operands().begin()+i+1);
-        result=true;
+        result = false;
       }
       else
         i++;
@@ -959,8 +961,13 @@ bool simplify_exprt::simplify_concatenation(exprt &expr)
   // { x } = x
   if(expr.operands().size()==1)
   {
-    exprt tmp;
-    tmp.swap(expr.op0());
+    exprt tmp = expr.op0();
+    if(expr.type() != tmp.type())
+    {
+      tmp.make_typecast(expr.type());
+      simplify_node(tmp);
+    }
+
     expr.swap(tmp);
     result=false;
   }
