@@ -479,6 +479,7 @@ bool simplify_exprt::simplify_plus(exprt &expr)
     if(expr.type().id()==ID_pointer &&
        expr.operands().size()==2 &&
        expr.op0().id()==ID_plus &&
+       expr.op0().type().id() == ID_pointer &&
        expr.op0().operands().size()==2)
     {
       exprt op0=expr.op0();
