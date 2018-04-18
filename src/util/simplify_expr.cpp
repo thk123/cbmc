@@ -12,6 +12,7 @@ Author: Daniel Kroening, kroening@kroening.com
 #include <algorithm>
 
 #include "c_types.h"
+#include "invariant.h"
 #include "rational.h"
 #include "simplify_expr_class.h"
 #include "mp_arith.h"
@@ -2415,6 +2416,7 @@ bool simplify_exprt::simplify_rec(exprt &expr)
 
   if(!result)
   {
+    POSTCONDITION(tmp.type() == expr.type());
     expr.swap(tmp);
 
     #ifdef USE_CACHE
