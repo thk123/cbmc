@@ -39,6 +39,7 @@ Author: Daniel Kroening, kroening@kroening.com
 
 #ifdef DEBUGX
 #include <iostream>
+#include "format_expr.h"
 #endif
 
 // #define USE_CACHE
@@ -2343,8 +2344,8 @@ bool simplify_exprt::simplify_node(exprt &expr)
      #endif
      )
   {
-    std::cout << "===== " << format(old) << "\n ---> " << format(expr)
-              << "\n";
+    std::cout << "===== " << old.id() << ": " << format(old) << '\n'
+              << " ---> " << format(expr) << '\n';
   }
   #endif
 
