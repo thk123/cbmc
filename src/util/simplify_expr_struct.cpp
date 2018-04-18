@@ -10,8 +10,10 @@ Author: Daniel Kroening, kroening@kroening.com
 
 #include <cassert>
 
+#include "base_type.h"
 #include "byte_operators.h"
 #include "expr.h"
+#include "invariant.h"
 #include "namespace.h"
 #include "std_expr.h"
 #include "pointer_offset_size.h"
@@ -136,8 +138,14 @@ bool simplify_exprt::simplify_member(exprt &expr)
       if(struct_type.has_component(component_name))
       {
         std::size_t number=struct_type.component_number(component_name);
-        exprt tmp;
-        tmp.swap(op.operands()[number]);
+        exprt tmp = op.operands()[number];
+        if(tmp.type() != expr.type())
+        {
+          DATA_INVARIANT(
+            base_type_eq(tmp.type(), expr.type(), ns),
+            "member expression type must match component type");
+          tmp.type() = expr.type();
+        }
         expr.swap(tmp);
         return false;
       }

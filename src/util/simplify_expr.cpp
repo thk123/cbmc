@@ -1701,6 +1701,9 @@ bool simplify_exprt::simplify_byte_extract(byte_extract_exprt &expr)
     if(base_type_eq(expr.type(), expr.op().op2().type(), ns))
     {
       exprt tmp=expr.op().op2();
+      // types are known to be semantically equivalent (via base_type_eq), make
+      // sure they are syntactically the same
+      tmp.type() = expr.type();
       expr.swap(tmp);
 
       return false;
@@ -1730,6 +1733,9 @@ bool simplify_exprt::simplify_byte_extract(byte_extract_exprt &expr)
      byte_extract_id()!=expr.id())
   {
     exprt tmp=expr.op();
+    // types are known to be semantically equivalent (via base_type_eq), make
+    // sure they are syntactically the same
+    tmp.type() = expr.type();
     expr.swap(tmp);
 
     return false;
@@ -1847,6 +1853,9 @@ bool simplify_exprt::simplify_byte_extract(byte_extract_exprt &expr)
 
           if(!base_type_eq(expr.type(), op_type_ptr->subtype(), ns))
              result.make_typecast(expr.type());
+          // types are known to be semantically equivalent (via base_type_eq),
+          // make sure they are syntactically the same
+          result.type() = expr.type();
 
           expr.swap(result);
           simplify_rec(expr);
@@ -1891,6 +1900,9 @@ bool simplify_exprt::simplify_byte_extract(byte_extract_exprt &expr)
       {
         member_exprt member(expr.op(), component.get_name(), component.type());
         simplify_member(member);
+        // types are known to be semantically equivalent (via base_type_eq),
+        // make sure they are syntactically the same
+        member.type() = expr.type();
         expr.swap(member);
 
         return false;
