@@ -1005,8 +1005,7 @@ bool simplify_exprt::simplify_shifts(exprt &expr)
   if(expr.op0().type().id()==ID_unsignedbv ||
      expr.op0().type().id()==ID_signedbv)
   {
-    mp_integer width=
-      string2integer(id2string(expr.op0().type().get(ID_width)));
+    const std::size_t width = to_bitvector_type(expr.op0().type()).get_width();
 
     if(expr.id()==ID_lshr)
     {
