@@ -165,8 +165,26 @@ SCENARIO("split_string", "[core][utils][string_utils][split_string]")
           Catch::Matchers::Vector::EqualsMatcher<std::string>{expected_result});
       }
     }
-    // TODO(tkiley): here we should check what happens when trying to enable
-    // TODO(tkiley): strip, but currently the behaviour terminates the unit test
+    WHEN("Stripping, not removing empty")
+    {
+      std::vector<std::string> result;
+      THEN("Should throw an exception")
+      {
+        REQUIRE_THROWS_AS(
+          split_string(string, delimiter, result, true, false),
+          std::invalid_argument);
+      }
+    }
+    WHEN("Stripping and removing empty")
+    {
+      std::vector<std::string> result;
+      THEN("Should throw an exception")
+      {
+        REQUIRE_THROWS_AS(
+          split_string(string, delimiter, result, true, true),
+          std::invalid_argument);
+      }
+    }
   }
 }
 
@@ -205,7 +223,15 @@ SCENARIO("split_string into two", "[core][utils][string_utils][split_string]")
         REQUIRE(s2 == "b");
       }
     }
-    // TODO(tkiley): here we should check what happens when trying to enable
-    // TODO(tkiley): strip, but currently the behaviour terminates the unit test
+    WHEN("Splitting in two and stripping")
+    {
+      THEN("An invalid argument exception should be raised")
+      {
+        std::string s1;
+        std::string s2;
+        REQUIRE_THROWS_AS(
+          split_string(string, delimiter, s1, s2, true), std::invalid_argument);
+      }
+    }
   }
 }

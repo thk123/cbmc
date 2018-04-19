@@ -53,8 +53,11 @@ void split_string(
   bool remove_empty)
 {
   PRECONDITION(result.empty());
-  // delim can't be a space character if using strip
-  PRECONDITION(!std::isspace(delim) || !strip);
+  if(strip && std::isspace(delim))
+  {
+    throw std::invalid_argument(
+      "delim can't be a space character if using strip");
+  }
 
   if(s.empty())
   {
@@ -103,8 +106,11 @@ void split_string(
   std::string &right,
   bool strip)
 {
-  // delim can't be a space character if using strip
-  PRECONDITION(!std::isspace(delim) || !strip);
+  if(strip && std::isspace(delim))
+  {
+    throw std::invalid_argument(
+      "delim can't be a space character if using strip");
+  }
 
   std::vector<std::string> result;
 
