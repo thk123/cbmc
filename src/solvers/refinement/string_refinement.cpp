@@ -911,7 +911,18 @@ static optionalt<exprt> get_array(
 {
   const auto eom = messaget::eom;
   const exprt &size = arr.length();
-  exprt arr_val = simplify_expr(super_get(arr), ns);
+  exprt s = super_get(arr);
+  while(s.id() == ID_if)
+  {
+    const exprt simp_cond = simplify_expr(to_if_expr(s).cond(), ns);
+    if(simp_cond.is_true())
+      s = to_if_expr(s).true_case();
+    else if(simp_cond.is_false())
+      s = to_if_expr(s).false_case();
+    else
+      break;
+  }
+  exprt arr_val = simplify_expr(s, ns);
   exprt size_val=super_get(size);
   size_val=simplify_expr(size_val, ns);
   const typet char_type = arr.type().subtype();
