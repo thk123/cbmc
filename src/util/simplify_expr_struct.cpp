@@ -51,6 +51,13 @@ bool simplify_exprt::simplify_member(exprt &expr)
           // found it!
           exprt tmp;
           tmp.swap(op2);
+          if(tmp.type() != expr.type())
+          {
+            DATA_INVARIANT(
+              base_type_eq(tmp.type(), expr.type(), ns),
+              "member expression type must match component type");
+            tmp.type() = expr.type();
+          }
           expr.swap(tmp);
 
           // do this recursively
