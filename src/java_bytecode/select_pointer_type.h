@@ -16,8 +16,15 @@
 #include <stack>
 #include "java_types.h"
 
-typedef std::unordered_map<irep_idt, std::stack<reference_typet>>
-  generic_parameter_specialization_mapt;
+class generic_parameter_specialization_mapt
+{
+public:
+  optionalt<reference_typet> get_reference_type(const irep_idt &identifier) const;
+  void erase_keys(std::vector<irep_idt> erase_keys);
+  bool add_pair(std::pair<java_generic_parametert, reference_typet> pair);
+private:
+  std::unordered_map<irep_idt, std::stack<reference_typet>> underlying_map;
+};
 
 class namespacet;
 

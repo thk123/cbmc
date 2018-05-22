@@ -30,15 +30,7 @@ public:
   /// controlled map.
   ~generic_parameter_specialization_map_keyst()
   {
-    for(const auto key : erase_keys)
-    {
-      PRECONDITION(generic_parameter_specialization_map.count(key) != 0);
-      (*generic_parameter_specialization_map.find(key)).second.pop();
-      if((*generic_parameter_specialization_map.find(key)).second.empty())
-      {
-        generic_parameter_specialization_map.erase(key);
-      }
-    }
+    generic_parameter_specialization_map.erase_keys(erase_keys);
   }
 
   // Objects of these class cannot be copied in any way - delete the copy

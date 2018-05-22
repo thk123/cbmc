@@ -28,17 +28,8 @@ pointer_typet select_pointer_typet::convert_pointer_type(
     &generic_parameter_specialization_map,
   const namespacet &ns) const
 {
-  // if we have a map of generic parameters -> types and the pointer is
-  // a generic parameter, specialize it with concrete types
-  if(!generic_parameter_specialization_map.empty())
-  {
-    return specialize_generics(
-      pointer_type, generic_parameter_specialization_map);
-  }
-  else
-  {
-    return pointer_type;
-  }
+  return specialize_generics(
+    pointer_type, generic_parameter_specialization_map);
 }
 
 /// Specialize generic parameters in a pointer type based on the current map
@@ -69,24 +60,12 @@ pointer_typet select_pointer_typet::specialize_generics(
     const java_generic_parametert &parameter =
       to_java_generic_parameter(pointer_type);
     const irep_idt &parameter_name = parameter.get_name();
-    if(generic_parameter_specialization_map.count(parameter_name) == 0)
-    {
-      // this means that the generic pointer_type has not been specialized
-      // in the current context (e.g., the method under test is generic);
-      // we return the pointer_type itself which is basically a pointer to
-      // its upper bound
+    optionalt<reference_typet> parameter_value =
+      generic_parameter_specialization_map.get_reference_type(parameter_name);
+    if(parameter_value)
+      return *parameter_value;
+    else
       return pointer_type;
-    }
-    const pointer_typet &type =
-      generic_parameter_specialization_map.find(parameter_name)->second.top();
-
-    // generic parameters can be adopted from outer classes or superclasses so
-    // we may need to search for the concrete type recursively
-    return is_java_generic_parameter(type)
-             ? specialize_generics(
-                 to_java_generic_parameter(type),
-                 generic_parameter_specialization_map)
-             : type;
   }
   else if(pointer_type.subtype().id() == ID_symbol)
   {
@@ -108,4 +87,56 @@ pointer_typet select_pointer_typet::specialize_generics(
     }
   }
   return pointer_type;
+}
+
+optionalt<reference_typet>
+generic_parameter_specialization_mapt::get_reference_type(const irep_idt &parameter_name) const
+{
+  if(underlying_map.count(parameter_name) == 0)
+  {
+    // this means that the generic pointer_type has not been specialized
+    // in the current context (e.g., the method under test is generic);
+    // we return the pointer_type itself which is basically a pointer to
+    // its upper bound
+    return {};
+  }
+  const reference_typet &type =
+    underlying_map.find(parameter_name)->second.top();
+
+  // generic parameters can be adopted from outer classes or superclasses so
+  // we may need to search for the concrete type recursively
+  return is_java_generic_parameter(type)
+         ? get_reference_type(to_java_generic_parameter(type).get_name())
+         : type;
+}
+
+void generic_parameter_specialization_mapt::erase_keys(
+  std::vector<irep_idt> erase_keys)
+{
+  for(const auto key : erase_keys)
+  {
+    PRECONDITION(underlying_map.count(key) != 0);
+    (*underlying_map.find(key)).second.pop();
+    if((*underlying_map.find(key)).second.empty())
+    {
+      underlying_map.erase(key);
+    }
+  }
+}
+
+bool generic_parameter_specialization_mapt::add_pair(
+  std::pair<java_generic_parametert, reference_typet> pair)
+{
+  if(
+    !(is_java_generic_parameter(pair.second) &&
+      to_java_generic_parameter(pair.second).get_name() ==
+        pair.first.get_name()))
+  {
+    const irep_idt &key = pair.first.get_name();
+    if(underlying_map.count(key) == 0)
+      underlying_map.emplace(key, std::stack<reference_typet>());
+    (*underlying_map.find(key)).second.push(pair.second);
+    return true;
+  }
+  return false;
 }
