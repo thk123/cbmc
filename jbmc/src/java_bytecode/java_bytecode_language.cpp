@@ -21,6 +21,8 @@ Author: Daniel Kroening, kroening@kroening.com
 #include <json/json_parser.h>
 
 #include <goto-programs/class_hierarchy.h>
+#include <util/string_utils.h>
+#include <iostream>
 
 #include "java_bytecode_concurrency_instrumentation.h"
 #include "java_bytecode_convert_class.h"
@@ -123,6 +125,22 @@ void java_bytecode_languaget::get_language_options(const cmdlinet &cmd)
     extra_entry_points.end(),
     std::back_inserter(extra_methods),
     build_load_method_by_regex);
+
+  {
+
+    extra_methods.push_back([&](const symbol_tablet & symbol_table) {
+      const std::string entry_point = cmd.get_value("function");
+      std::string error;
+      const irep_idt &entry_method =
+        resolve_friendly_method_name(entry_point, symbol_table, error);
+
+      const std::string entry =
+        trim_from_last_delimiter(id2string(entry_method), '.') +
+        "\\.<init>.*";
+
+      return build_load_method_by_regex(entry)(symbol_table);
+    });
+  }
 
   if(cmd.isset("java-cp-include-files"))
   {
