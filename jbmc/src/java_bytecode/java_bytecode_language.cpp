@@ -225,10 +225,10 @@ void java_bytecode_languaget::get_language_options(const cmdlinet &cmd)
         }
       }
 
-      for(const irep_idt &elements : extra_entry_points)
-      {
-        std::cerr << "Loading: " << elements << std::endl;
-      }
+//      for(const irep_idt &elements : extra_entry_points)
+//      {
+//        // std::cerr << "Loading: " << elements << std::endl;
+//      }
 
       return extra_entry_points;
     });
