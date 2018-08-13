@@ -118,27 +118,119 @@ void java_bytecode_languaget::get_language_options(const cmdlinet &cmd)
     no_load_classes = {values.begin(), values.end()};
   }
 
-  const std::list<std::string> &extra_entry_points=
-    cmd.get_values("lazy-methods-extra-entry-point");
-  std::transform(
-    extra_entry_points.begin(),
-    extra_entry_points.end(),
-    std::back_inserter(extra_methods),
-    build_load_method_by_regex);
+  // TODO(tkiley): renenable
+//  const std::list<std::string> &extra_entry_points=
+//    cmd.get_values("lazy-methods-extra-entry-point");
+//  std::transform(
+//    extra_entry_points.begin(),
+//    extra_entry_points.end(),
+//    std::back_inserter(extra_methods),
+//    build_load_method_by_regex);
 
   {
+
+
+
 
     extra_methods.push_back([&](const symbol_tablet & symbol_table) {
       const std::string entry_point = cmd.get_value("function");
       std::string error;
-      const irep_idt &entry_method =
+      const irep_idt &entry_method_id =
         resolve_friendly_method_name(entry_point, symbol_table, error);
 
-      const std::string entry =
-        trim_from_last_delimiter(id2string(entry_method), '.') +
-        "\\.<init>.*";
+      const symbolt &entry_function_symbol = symbol_table.lookup_ref(entry_method_id);
+      INVARIANT(
+        entry_function_symbol.is_function(), "Entry function isn't a function");
+      const java_method_typet &entry_method =
+        to_java_method_type(entry_function_symbol.type);
 
-      return build_load_method_by_regex(entry)(symbol_table);
+      std::vector<irep_idt> extra_entry_points;
+
+
+      std::set<irep_idt> seen_types;
+
+      const std::function<std::vector<irep_idt>(const symbol_typet &)> collect_constructors_and_setters =
+        [&](const symbol_typet &symbol) -> std::vector<irep_idt> {
+
+        if(!seen_types.insert(symbol.get_identifier()).second)
+          return {};
+
+        if(has_prefix(id2string(symbol.get_identifier()), "java::java."))
+          return {};
+
+          std::vector<irep_idt> new_extra_entry_points;
+
+        const std::string entry =
+          id2string(symbol.get_identifier()) + R"(\.<init>.*)";
+        const auto constructors =
+          build_load_method_by_regex(entry)(symbol_table);
+
+        std::move(
+          constructors.begin(),
+          constructors.end(),
+          std::back_inserter(new_extra_entry_points));
+        const std::string entry2 =
+          id2string(symbol.get_identifier()) + R"(\.set[A-Z]\w*)";
+        const auto setters = build_load_method_by_regex(entry2)(symbol_table);
+
+        std::move(
+          setters.begin(),
+          setters.end(),
+          std::back_inserter(new_extra_entry_points));
+
+        namespacet ns{symbol_table};
+        if(
+          const auto struct_type =
+            type_try_dynamic_cast<struct_typet>(ns.follow(symbol)))
+        {
+          for(const auto component : struct_type->components())
+          {
+            if(
+              const auto base_class =
+                type_try_dynamic_cast<symbol_typet>(component.type()))
+            {
+              const auto parent_classes =
+                collect_constructors_and_setters(*base_class);
+              std::move(
+                parent_classes.begin(),
+                parent_classes.end(),
+                std::back_inserter(new_extra_entry_points));
+            }
+            else if(
+              const auto symbol =
+                type_try_dynamic_cast<symbol_typet>(component.type().subtype()))
+            {
+              const auto component_classes =
+                collect_constructors_and_setters(*symbol);
+              std::move(
+                component_classes.begin(),
+                component_classes.end(),
+                std::back_inserter(new_extra_entry_points));
+            }
+          }
+        }
+
+        return new_extra_entry_points;
+      };
+
+      for(const auto &param : entry_method.parameters())
+      {
+        if(const auto symbol = type_try_dynamic_cast<symbol_typet>(param.type().subtype()))
+        {
+          const auto &new_elements = collect_constructors_and_setters(*symbol);
+          std::move(
+            new_elements.begin(),
+            new_elements.end(),
+            std::back_inserter(extra_entry_points));
+        }
+      }
+
+      for(const irep_idt &elements : extra_entry_points)
+      {
+        std::cerr << "Loading: " << elements << std::endl;
+      }
+
+      return extra_entry_points;
     });
   }
 
