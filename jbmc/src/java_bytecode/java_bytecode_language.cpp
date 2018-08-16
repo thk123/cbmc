@@ -128,17 +128,14 @@ void java_bytecode_languaget::get_language_options(const cmdlinet &cmd)
 //    build_load_method_by_regex);
 
   {
-
-
-
-
-    extra_methods.push_back([&](const symbol_tablet & symbol_table) {
+    extra_methods.push_back([&](const symbol_tablet &symbol_table) {
       const std::string entry_point = cmd.get_value("function");
       std::string error;
       const irep_idt &entry_method_id =
         resolve_friendly_method_name(entry_point, symbol_table, error);
 
-      const symbolt &entry_function_symbol = symbol_table.lookup_ref(entry_method_id);
+      const symbolt &entry_function_symbol =
+        symbol_table.lookup_ref(entry_method_id);
       INVARIANT(
         entry_function_symbol.is_function(), "Entry function isn't a function");
       const java_method_typet &entry_method =
@@ -146,11 +143,11 @@ void java_bytecode_languaget::get_language_options(const cmdlinet &cmd)
 
       std::vector<irep_idt> extra_entry_points;
 
-
       std::set<irep_idt> seen_types;
 
-      const std::function<std::vector<irep_idt>(const symbol_typet &)> collect_constructors_and_setters =
-        [&](const symbol_typet &symbol) -> std::vector<irep_idt> {
+      const std::function<std::vector<irep_idt>(const symbol_typet &)>
+        collect_constructors_and_setters =
+          [&](const symbol_typet &symbol) -> std::vector<irep_idt> {
 
         if(!seen_types.insert(symbol.get_identifier()).second)
           return {};
@@ -158,7 +155,7 @@ void java_bytecode_languaget::get_language_options(const cmdlinet &cmd)
         if(has_prefix(id2string(symbol.get_identifier()), "java::java."))
           return {};
 
-          std::vector<irep_idt> new_extra_entry_points;
+        std::vector<irep_idt> new_extra_entry_points;
 
         const std::string entry =
           id2string(symbol.get_identifier()) + R"(\.<init>.*)";
@@ -215,7 +212,9 @@ void java_bytecode_languaget::get_language_options(const cmdlinet &cmd)
 
       for(const auto &param : entry_method.parameters())
       {
-        if(const auto symbol = type_try_dynamic_cast<symbol_typet>(param.type().subtype()))
+        if(
+          const auto symbol =
+            type_try_dynamic_cast<symbol_typet>(param.type().subtype()))
         {
           const auto &new_elements = collect_constructors_and_setters(*symbol);
           std::move(
@@ -225,10 +224,10 @@ void java_bytecode_languaget::get_language_options(const cmdlinet &cmd)
         }
       }
 
-//      for(const irep_idt &elements : extra_entry_points)
-//      {
-//        // std::cerr << "Loading: " << elements << std::endl;
-//      }
+      //      for(const irep_idt &elements : extra_entry_points)
+      //      {
+      //        // std::cerr << "Loading: " << elements << std::endl;
+      //      }
 
       return extra_entry_points;
     });
