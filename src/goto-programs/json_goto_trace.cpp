@@ -21,6 +21,7 @@ Author: Daniel Kroening
 
 #include "goto_trace.h"
 #include "json_expr.h"
+#include <iostream>
 
 /// Convert an ASSERT goto_trace step.
 /// \param [out] json_failure: The JSON object that
@@ -112,6 +113,13 @@ void convert_decl(
     comment_base_name_visitort comment_base_name_visitor(ns);
     simplified.visit(comment_base_name_visitor);
   }
+
+  std::cerr << "LHS:" << std::endl;
+  std::cerr << identifier << std::endl;
+  std::cerr << step.full_lhs.pretty() << std::endl;
+
+  std::cerr << "RHS:" << std::endl;
+  std::cerr << step.full_lhs_value.pretty() << std::endl;
 
   full_lhs_string = from_expr(ns, identifier, simplified);
 
