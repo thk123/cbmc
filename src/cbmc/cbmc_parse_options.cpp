@@ -78,6 +78,7 @@ Author: Daniel Kroening, kroening@kroening.com
 
 #include <pointer-analysis/add_failed_symbols.h>
 
+#include <goto-programs/c_string_refinement.h>
 #include <langapi/mode.h>
 
 #include "c_test_input_generator.h"
@@ -833,13 +834,18 @@ bool cbmc_parse_optionst::process_goto_program(
   link_to_library(
     goto_model, log.get_message_handler(), cprover_c_library_factory);
 
-  if(
-    options.get_bool_option("string-abstraction") ||
-    options.get_bool_option("refine-strings"))
-    string_instrumentation(
+  if(options.get_bool_option("string-abstraction"))
+  {
+    string_instrumentation(goto_model, log.get_message_handler());
+  }
+
+  if(options.get_bool_option("refine-strings"))
+  {
+    c_string_refinement(
       goto_model,
       log.get_message_handler(),
       options.get_option("max-nondet-string-length"));
+  }
 
   // remove function pointers
   log.status() << "Removal of function pointers and virtual functions"
