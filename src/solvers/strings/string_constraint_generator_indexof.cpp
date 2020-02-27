@@ -13,6 +13,7 @@ Author: Romain Brenguier, romain.brenguier@diffblue.com
 
 #include "string_constraint_generator.h"
 #include "string_refinement_invariant.h"
+#include <util/c_types.h>
 
 /// Add axioms stating that the returned value is the index within `haystack`
 /// (`str`) of the first occurrence of `needle` (`c`) starting the search at
@@ -111,7 +112,7 @@ string_constraint_generatort::add_axioms_for_c_index_of(
   const exprt &from_index)
 {
   string_constraintst constraints;
-  const typet &index_type = str.length_type();
+  const typet &index_type = from_index.type();
   symbol_exprt index = fresh_symbol("index_of", index_type);
   symbol_exprt contains = fresh_symbol("contains_in_index_of");
   symbol_exprt terminating_zero = fresh_symbol("zero_in_index_of", index_type);
@@ -121,7 +122,7 @@ string_constraint_generatort::add_axioms_for_c_index_of(
     binary_relation_exprt(index, ID_ge, minus1),
     binary_relation_exprt(index, ID_le, terminating_zero),
     binary_relation_exprt(
-      terminating_zero, ID_lt, array_pool.get_or_create_length(str)));
+      terminating_zero, ID_lt, typecast_exprt{array_pool.get_or_create_length(str), index_type}));
   constraints.existential.push_back(a1);
 
   equal_exprt a2(not_exprt(contains), equal_exprt(index, minus1));
@@ -436,12 +437,12 @@ string_constraint_generatort::add_axioms_for_c_index_of(
   const function_application_exprt &f)
 {
   auto const &str = f.arguments().at(0);
-  auto const &c = f.arguments().at(1);
+  auto const &character_needle = f.arguments().at(1);
   auto const str_array = get_string_expr(array_pool, str);
   return add_axioms_for_c_index_of(
     str_array,
-    typecast_exprt{c, str_array.content().type().subtype()},
-    from_integer(0, str_array.length_type()));
+    typecast_exprt{character_needle, str_array.content().type().subtype()},
+    from_integer(0, index_type()));
 }
 
 /// Add axioms stating that the returned value is the index within `haystack`
