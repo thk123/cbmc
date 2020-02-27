@@ -77,7 +77,7 @@ void c_string_refinementt::operator()(goto_functionst &goto_functions)
       it != goto_functions.function_map.end();
       it++)
   {
-    if(it->first == CPROVER_PREFIX "math_func_string_index_of")
+    if(it->first == "strchr")
     {
       do_string_index_of(it->second);
     }
@@ -126,7 +126,7 @@ void c_string_refinementt::do_string_index_of(goto_functiont &string_index_of)
     symbol_exprt{ch_param.get_identifier(), ch_param.type()};
   goto_programt new_body;
   const auto length_symbol = new_aux_string_symbol(
-    "cprover_string_index_of_func::string_length", index_type(), symbol_table);
+    "cprover_string_index_of_func::string_length", size_type(), symbol_table);
   const auto length_symbol_expr = length_symbol.symbol_expr();
   const auto refined_string =
     char_ptr_to_refined_string(str_param_symbol, length_symbol_expr, new_body);
