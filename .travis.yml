@@ -338,6 +338,44 @@ jobs:
         - WITH_MEMORY_ANALYZER=1
       script: echo "This is coverity build. No need for tests."
 
+      # cmake with smt switch
+    - stage: Test different OS/CXX/Flags
+      os: linux
+      dist: trusty
+      sudo: false
+      compiler: clang
+      cache: ccache
+      env:
+        - BUILD_SYSTEM=cmake
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-trusty-7
+          packages:
+            - libwww-perl
+            - g++-8
+            - clang-7
+            - libstdc++-8-dev
+            - libubsan0
+            - parallel
+            - jq
+            - gdb
+      before_install:
+        - mkdir bin
+        # Use gcc/g++ 5 for tests, as Clang doesn't work yet
+        # See https://github.com/diffblue/cbmc/issues/2370 for details.
+        - ln -s /usr/bin/gcc-5 bin/gcc-8
+        - ln -s /usr/bin/g++-5 bin/g++-8
+      install:
+        - ccache -z
+        - ccache --max-size=1G
+        - cmake -S . -Bbuild '-Duse_smt_switch=ON' '-DBUILD_CVC4=ON' '-DCMAKE_BUILD_TYPE=Release' '-DCMAKE_CXX_COMPILER=/usr/bin/clang++-7' '-DCMAKE_CXX_FLAGS=-Qunused-arguments -std=c++17'
+        - git submodule update --init --recursive
+        - cmake --build build -- -j4
+      # we only run unit tests for now - as these are the only users of SMT Switch
+      script: (cd build; ctest -V -L CORE -j2 -R unit)
+
 install:
   - ccache -z
   - ccache --max-size=1G
