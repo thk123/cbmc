@@ -1618,45 +1618,6 @@ constant_interval_exprt::unary_minus(const constant_interval_exprt &a)
   return a.unary_minus();
 }
 
-constant_interval_exprt
-constant_interval_exprt::typecast(const typet &type) const
-{
-  if(this->type().id() == ID_bool && is_int(type))
-  {
-    bool lower = !has_no_lower_bound() && get_lower().is_true();
-    bool upper = has_no_upper_bound() || get_upper().is_true();
-
-    INVARIANT(!lower || upper, "");
-
-    constant_exprt lower_num = from_integer(lower, type);
-    constant_exprt upper_num = from_integer(upper, type);
-
-    return constant_interval_exprt(lower_num, upper_num, type);
-  }
-  else
-  {
-    auto do_typecast = [&type](exprt e) {
-      if(e.id() == ID_min || e.id() == ID_max)
-      {
-        e.type() = type;
-      }
-      else
-      {
-        e = simplified_expr(typecast_exprt(e, type));
-      }
-      return e;
-    };
-
-    exprt lower = do_typecast(get_lower());
-    POSTCONDITION(lower.id() == get_lower().id());
-
-    exprt upper = do_typecast(get_upper());
-    POSTCONDITION(upper.id() == get_upper().id());
-
-    return constant_interval_exprt(lower, upper, type);
-  }
-}
-
 /* Binary */
 constant_interval_exprt constant_interval_exprt::plus(
   const constant_interval_exprt &a,

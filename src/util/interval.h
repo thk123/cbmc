@@ -102,8 +102,6 @@ public:
   constant_interval_exprt unary_plus() const;
   constant_interval_exprt unary_minus() const;
 
-  constant_interval_exprt typecast(const typet &type) const;
-
   /* Logical */
   tvt is_definitely_true() const;
   tvt is_definitely_false() const;
