@@ -98,10 +98,6 @@ public:
   constant_interval_exprt
   eval(const irep_idt &binary_operator, const constant_interval_exprt &o) const;
 
-  /* Unary arithmetic */
-  constant_interval_exprt unary_plus() const;
-  constant_interval_exprt unary_minus() const;
-
   /* Logical */
   tvt is_definitely_true() const;
   tvt is_definitely_false() const;
@@ -111,24 +107,6 @@ public:
   tvt logical_xor(const constant_interval_exprt &o) const;
   tvt logical_not() const;
 
-  /* Binary */
-  constant_interval_exprt plus(const constant_interval_exprt &o) const;
-  constant_interval_exprt minus(const constant_interval_exprt &other) const;
-  constant_interval_exprt multiply(const constant_interval_exprt &o) const;
-  constant_interval_exprt divide(const constant_interval_exprt &o) const;
-  constant_interval_exprt modulo(const constant_interval_exprt &o) const;
-
-  /* Binary shifts */
-  constant_interval_exprt left_shift(const constant_interval_exprt &o) const;
-  constant_interval_exprt right_shift(const constant_interval_exprt &o) const;
-
-  /* Unary bitwise */
-  constant_interval_exprt bitwise_not() const;
-
-  /* Binary bitwise */
-  constant_interval_exprt bitwise_xor(const constant_interval_exprt &o) const;
-  constant_interval_exprt bitwise_or(const constant_interval_exprt &o) const;
-  constant_interval_exprt bitwise_and(const constant_interval_exprt &o) const;
 
   tvt less_than(const constant_interval_exprt &o) const;
   tvt greater_than(const constant_interval_exprt &o) const;
@@ -136,9 +114,6 @@ public:
   tvt greater_than_or_equal(const constant_interval_exprt &o) const;
   tvt equal(const constant_interval_exprt &o) const;
   tvt not_equal(const constant_interval_exprt &o) const;
-
-  constant_interval_exprt increment() const;
-  constant_interval_exprt decrement() const;
 
   bool is_empty() const;
   bool is_single_value_interval() const;
@@ -454,6 +429,30 @@ private:
 
     return b;
   }
+
+  /* Member arithmetic operations: prefer static versions*/
+  constant_interval_exprt unary_plus() const;
+  constant_interval_exprt unary_minus() const;
+  constant_interval_exprt increment() const;
+  constant_interval_exprt decrement() const;
+
+  constant_interval_exprt plus(const constant_interval_exprt &o) const;
+  constant_interval_exprt minus(const constant_interval_exprt &other) const;
+  constant_interval_exprt multiply(const constant_interval_exprt &o) const;
+  constant_interval_exprt divide(const constant_interval_exprt &o) const;
+  constant_interval_exprt modulo(const constant_interval_exprt &o) const;
+
+  /* Binary shifts */
+  constant_interval_exprt left_shift(const constant_interval_exprt &o) const;
+  constant_interval_exprt right_shift(const constant_interval_exprt &o) const;
+
+  /* Unary bitwise */
+  constant_interval_exprt bitwise_not() const;
+
+  /* Binary bitwise */
+  constant_interval_exprt bitwise_xor(const constant_interval_exprt &o) const;
+  constant_interval_exprt bitwise_or(const constant_interval_exprt &o) const;
+  constant_interval_exprt bitwise_and(const constant_interval_exprt &o) const;
 };
 
 #endif /* SRC_ANALYSES_INTERVAL_H_ */
