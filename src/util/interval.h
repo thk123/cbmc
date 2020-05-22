@@ -79,43 +79,6 @@ public:
   {
   }
 
-  bool is_well_formed() const
-  {
-    bool b = true;
-
-    const typet &type = this->type();
-    const exprt &lower = get_lower();
-    const exprt &upper = get_upper();
-
-    b &= is_numeric() || type.id() == ID_bool || type.is_nil();
-
-    b &= type == lower.type();
-    b &= type == upper.type();
-
-    b &= is_valid_bound(lower);
-    b &= is_valid_bound(upper);
-
-    b &= !is_numeric() || is_bottom() || less_than_or_equal(lower, upper);
-
-    return b;
-  }
-
-  bool is_valid_bound(const exprt &expr) const
-  {
-    const irep_idt &id = expr.id();
-
-    bool b = true;
-
-    b &= id == ID_constant || id == ID_min || id == ID_max;
-
-    if(type().id() == ID_bool && id == ID_constant)
-    {
-      b &= expr == true_exprt() || expr == false_exprt();
-    }
-
-    return b;
-  }
-
   static constant_interval_exprt tvt_to_interval(const tvt &val);
 
   /* Naming scheme
@@ -455,6 +418,43 @@ private:
     const exprt &lhs,
     const exprt &rhs,
     const irep_idt &operation);
+
+  bool is_well_formed() const
+  {
+    bool b = true;
+
+    const typet &type = this->type();
+    const exprt &lower = get_lower();
+    const exprt &upper = get_upper();
+
+    b &= is_numeric() || type.id() == ID_bool || type.is_nil();
+
+    b &= type == lower.type();
+    b &= type == upper.type();
+
+    b &= is_valid_bound(lower);
+    b &= is_valid_bound(upper);
+
+    b &= !is_numeric() || is_bottom() || less_than_or_equal(lower, upper);
+
+    return b;
+  }
+
+  bool is_valid_bound(const exprt &expr) const
+  {
+    const irep_idt &id = expr.id();
+
+    bool b = true;
+
+    b &= id == ID_constant || id == ID_min || id == ID_max;
+
+    if(type().id() == ID_bool && id == ID_constant)
+    {
+      b &= expr == true_exprt() || expr == false_exprt();
+    }
+
+    return b;
+  }
 };
 
 #endif /* SRC_ANALYSES_INTERVAL_H_ */
