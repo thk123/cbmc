@@ -91,6 +91,8 @@ public:
   /* Getters */
   const exprt &get_lower() const;
   const exprt &get_upper() const;
+  bool is_empty() const;
+  bool is_single_value_interval() const;
 
   /** SET OF ARITHMETIC OPERATORS */
 
@@ -106,8 +108,6 @@ public:
   tvt equal(const constant_interval_exprt &o) const;
   tvt not_equal(const constant_interval_exprt &o) const;
 
-  bool is_empty() const;
-  bool is_single_value_interval() const;
   /** END SET OF ARITHMETIC OPERATORS */
 
   //  tvt contains(constant_interval_exprt &o) const;
