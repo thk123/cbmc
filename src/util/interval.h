@@ -129,28 +129,6 @@ public:
   static bool greater_than_or_equal(const exprt &a, const exprt &b);
   /* END SET OF EXPR COMPS */
 
-  /* INTERVAL COMPARISONS, returns tvt.is_true().  False cannot be trusted
-   * (could be false or unknown, either use less_than, etc method or use the correct
-   * operator)! */
-  friend bool operator<(
-    const constant_interval_exprt &lhs,
-    const constant_interval_exprt &rhs);
-  friend bool operator>(
-    const constant_interval_exprt &lhs,
-    const constant_interval_exprt &rhs);
-  friend bool operator<=(
-    const constant_interval_exprt &lhs,
-    const constant_interval_exprt &rhs);
-  friend bool operator>=(
-    const constant_interval_exprt &lhs,
-    const constant_interval_exprt &rhs);
-  friend bool operator==(
-    const constant_interval_exprt &lhs,
-    const constant_interval_exprt &rhs);
-  friend bool operator!=(
-    const constant_interval_exprt &lhs,
-    const constant_interval_exprt &rhs);
-
   /* Operator override for intervals */
   friend const constant_interval_exprt operator+(
     const constant_interval_exprt &lhs,
@@ -460,6 +438,28 @@ private:
   tvt logical_or(const constant_interval_exprt &o) const;
   tvt logical_xor(const constant_interval_exprt &o) const;
   tvt logical_not() const;
+  /* INTERVAL COMPARISONS, returns tvt.is_true().  False cannot be trusted
+ * (could be false or unknown, either use less_than, etc method or use the correct
+ * operator)! */
+  // These are dangerous to use so should probably not exist, or return a tvt
+  friend bool operator<(
+    const constant_interval_exprt &lhs,
+    const constant_interval_exprt &rhs);
+  friend bool operator>(
+    const constant_interval_exprt &lhs,
+    const constant_interval_exprt &rhs);
+  friend bool operator<=(
+    const constant_interval_exprt &lhs,
+    const constant_interval_exprt &rhs);
+  friend bool operator>=(
+    const constant_interval_exprt &lhs,
+    const constant_interval_exprt &rhs);
+  friend bool operator==(
+    const constant_interval_exprt &lhs,
+    const constant_interval_exprt &rhs);
+  friend bool operator!=(
+    const constant_interval_exprt &lhs,
+    const constant_interval_exprt &rhs);
 };
 
 #endif /* SRC_ANALYSES_INTERVAL_H_ */
