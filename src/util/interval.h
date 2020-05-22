@@ -64,11 +64,6 @@ public:
     PRECONDITION(is_well_formed());
   }
 
-  constant_interval_exprt(const constant_interval_exprt &x)
-    : constant_interval_exprt(x.get_lower(), x.get_upper(), x.type())
-  {
-  }
-
   explicit constant_interval_exprt(const exprt &x)
     : constant_interval_exprt(x, x, x.type())
   {
