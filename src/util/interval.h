@@ -52,7 +52,7 @@ public:
 /// or min_exprt for the lower bound
 /// or max_exprt for the upper bound
 /// Also, lower bound should always be <= upper bound
-class constant_interval_exprt : public binary_exprt
+class constant_interval_exprt : private binary_exprt
 {
 public:
   constant_interval_exprt(
@@ -456,12 +456,5 @@ private:
     const exprt &rhs,
     const irep_idt &operation);
 };
-
-inline const constant_interval_exprt &
-to_constant_interval_expr(const exprt &expr)
-{
-  PRECONDITION(expr.id() == ID_constant_interval);
-  return static_cast<const constant_interval_exprt &>(expr);
-}
 
 #endif /* SRC_ANALYSES_INTERVAL_H_ */
