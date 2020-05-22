@@ -98,15 +98,6 @@ public:
   constant_interval_exprt
   eval(const irep_idt &binary_operator, const constant_interval_exprt &o) const;
 
-  /* Logical */
-  tvt is_definitely_true() const;
-  tvt is_definitely_false() const;
-
-  tvt logical_and(const constant_interval_exprt &o) const;
-  tvt logical_or(const constant_interval_exprt &o) const;
-  tvt logical_xor(const constant_interval_exprt &o) const;
-  tvt logical_not() const;
-
 
   tvt less_than(const constant_interval_exprt &o) const;
   tvt greater_than(const constant_interval_exprt &o) const;
@@ -453,6 +444,14 @@ private:
   constant_interval_exprt bitwise_xor(const constant_interval_exprt &o) const;
   constant_interval_exprt bitwise_or(const constant_interval_exprt &o) const;
   constant_interval_exprt bitwise_and(const constant_interval_exprt &o) const;
+
+  /* Logical -> use to_tvt and tvt operations */
+  tvt is_definitely_true() const;
+  tvt is_definitely_false() const;
+  tvt logical_and(const constant_interval_exprt &o) const;
+  tvt logical_or(const constant_interval_exprt &o) const;
+  tvt logical_xor(const constant_interval_exprt &o) const;
+  tvt logical_not() const;
 };
 
 #endif /* SRC_ANALYSES_INTERVAL_H_ */
