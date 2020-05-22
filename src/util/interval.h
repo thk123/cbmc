@@ -113,11 +113,19 @@ public:
   //  tvt contains(constant_interval_exprt &o) const;
 
   /* SET OF EXPR COMPARATORS */
+  // these just don't want to be in this class at all, they have nothing
+  // to do with intervals
+  DEPRECATED("Construct and simplify an expr")
   static bool equal(const exprt &a, const exprt &b);
+  DEPRECATED("Construct and simplify an expr")
   static bool not_equal(const exprt &a, const exprt &b);
+  DEPRECATED("Construct and simplify an expr")
   static bool less_than(const exprt &a, const exprt &b);
+  DEPRECATED("Construct and simplify an expr")
   static bool less_than_or_equal(const exprt &a, const exprt &b);
+  DEPRECATED("Construct and simplify an expr")
   static bool greater_than(const exprt &a, const exprt &b);
+  DEPRECATED("Construct and simplify an expr")
   static bool greater_than_or_equal(const exprt &a, const exprt &b);
   /* END SET OF EXPR COMPS */
 
