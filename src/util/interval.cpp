@@ -1883,42 +1883,6 @@ bool constant_interval_exprt::is_negative() const
   return is_negative(get_lower()) && is_negative(get_upper());
 }
 
-tvt constant_interval_exprt::is_true(const constant_interval_exprt &a)
-{
-  return a.is_definitely_true();
-}
-
-tvt constant_interval_exprt::is_false(const constant_interval_exprt &a)
-{
-  return a.is_definitely_false();
-}
-
-tvt constant_interval_exprt::logical_and(
-  const constant_interval_exprt &a,
-  const constant_interval_exprt &b)
-{
-  return a.logical_and(b);
-}
-
-tvt constant_interval_exprt::logical_or(
-  const constant_interval_exprt &a,
-  const constant_interval_exprt &b)
-{
-  return a.logical_or(b);
-}
-
-tvt constant_interval_exprt::logical_xor(
-  const constant_interval_exprt &a,
-  const constant_interval_exprt &b)
-{
-  return a.logical_xor(b);
-}
-
-tvt constant_interval_exprt::logical_not(const constant_interval_exprt &a)
-{
-  return a.logical_not();
-}
-
 constant_interval_exprt constant_interval_exprt::tvt_to_interval(const tvt &val)
 {
   if(val.is_true())

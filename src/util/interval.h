@@ -167,20 +167,6 @@ public:
   operator<<(std::ostream &out, const constant_interval_exprt &i);
   std::string to_string() const;
 
-  /* Now static equivalents! */
-  static tvt is_true(const constant_interval_exprt &a);
-  static tvt is_false(const constant_interval_exprt &a);
-
-  static tvt logical_and(
-    const constant_interval_exprt &a,
-    const constant_interval_exprt &b);
-  static tvt logical_or(
-    const constant_interval_exprt &a,
-    const constant_interval_exprt &b);
-  static tvt logical_xor(
-    const constant_interval_exprt &a,
-    const constant_interval_exprt &b);
-  static tvt logical_not(const constant_interval_exprt &a);
 
   static constant_interval_exprt unary_plus(const constant_interval_exprt &a);
   static constant_interval_exprt unary_minus(const constant_interval_exprt &a);
