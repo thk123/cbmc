@@ -93,11 +93,6 @@ public:
   const exprt &get_upper() const;
 
   /** SET OF ARITHMETIC OPERATORS */
-  constant_interval_exprt
-  handle_constant_unary_expression(const irep_idt &op) const;
-  constant_interval_exprt handle_constant_binary_expression(
-    const constant_interval_exprt &other,
-    const irep_idt &) const;
 
   constant_interval_exprt eval(const irep_idt &unary_operator) const;
   constant_interval_exprt
@@ -418,6 +413,12 @@ private:
     const exprt &lhs,
     const exprt &rhs,
     const irep_idt &operation);
+
+  constant_interval_exprt
+  handle_constant_unary_expression(const irep_idt &op) const;
+  constant_interval_exprt handle_constant_binary_expression(
+    const constant_interval_exprt &other,
+    const irep_idt &) const;
 
   bool is_well_formed() const
   {
