@@ -1,0 +1,8 @@
+CORE
+--function test
+^EXIT=0$
+^SIGNAL=0$
+^VERIFICATION SUCCESSFUL$
+--
+--
+Verify that the clang extension to provide an underlying type for enums is understood by CBMC
