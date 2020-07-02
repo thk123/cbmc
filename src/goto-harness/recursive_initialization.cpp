@@ -209,12 +209,13 @@ void recursive_initializationt::initialize(
       {
         const auto &fun_type_params =
           to_code_type(fun_symbol.type).parameters();
-        const typet &size_var_type = fun_type_params.back().type();
+        const auto &size_var_type = type_try_dynamic_cast<pointer_typet>(fun_type_params.back().type());
+        INVARIANT(size_var_type, "Size parameter must be a pointer to the size");
         body.add(code_function_callt{
           fun_symbol.symbol_expr(),
           {depth,
            address_of_exprt{lhs},
-           null_pointer_exprt{pointer_type(size_var_type)}}});
+           null_pointer_exprt{*size_var_type}}});
       }
       return;
     }
